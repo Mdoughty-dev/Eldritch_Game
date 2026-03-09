@@ -3,8 +3,8 @@ import backgroundImage from "../../assets/background.png";
 import character1 from "../../assets/character1.png";
 import character2 from "../../assets/character2.png";
 import character3 from "../../assets/character3.png";
-
-const charArray = ["char1", "char2", "char3"];
+import character4 from "../../assets/character4.png"
+const charArray = ["char1", "char2", "char3", "char4"];
 
 export default class characterSceneSolo extends Phaser.Scene {
   constructor() {
@@ -16,6 +16,7 @@ export default class characterSceneSolo extends Phaser.Scene {
       .image(this.scale.width / 2, 450, character)
       .setOrigin(0.5);
     character.setScale(0.4);
+	  return character;
   }
 
   preload() {
@@ -23,6 +24,7 @@ export default class characterSceneSolo extends Phaser.Scene {
     this.load.image("char1", character1);
     this.load.image("char2", character2);
     this.load.image("char3", character3);
+    this.load.image("char4", character4)	  
   }
 
   create() {
@@ -52,13 +54,16 @@ export default class characterSceneSolo extends Phaser.Scene {
         color: buttonColor,
       })
       .setOrigin(0.5);
-
+    let counter = 0;
+    let currentCharacter = this.loadCharacter(charArray[counter]);	  
     nextButton.on("pointerdown", () => {
       console.log("pointer down pressed");
-      let counter = 0;
-      this.loadCharacter(charArray[counter]);
+      if (currentCharacter)
+	    currentCharacter.destroy();
+      counter += 1;
+      currentCharacter = this.loadCharacter(charArray[counter]);
     });
 
-    //this.loadCharacter(charArray[0]);
+  
   }
 }
