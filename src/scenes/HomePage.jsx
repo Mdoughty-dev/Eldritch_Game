@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import background from "../assets/background.png";
 import backgroundmp3 from "../assets/background.mp3";
+import mute from "../assets/mute.png";
 
 export default class HomePage extends Phaser.Scene {
   constructor() {
@@ -10,6 +11,7 @@ export default class HomePage extends Phaser.Scene {
   preload() {
     this.load.image("background", background);
     this.load.audio("backgroundmp3", backgroundmp3);
+    this.load.image("mute", mute);
   }
 
   create() {
@@ -24,7 +26,7 @@ export default class HomePage extends Phaser.Scene {
     this.add
       .text(this.scale.width / 2, 100, "Forbidden Knowledge", {
         fontSize: "64px",
-        fontFamily: "Arial",
+        fontFamily: "Blackletter",
         color: "#FFFFFF",
       })
       .setOrigin(0.5);
@@ -34,7 +36,7 @@ export default class HomePage extends Phaser.Scene {
         fontSize: "32px",
         color: "#FFFFFF",
         backgroundColor: "#494949",
-        fontFamily: "Arial",
+        fontFamily: "Blackletter",
       })
       .setOrigin(0.5);
 
@@ -48,13 +50,32 @@ export default class HomePage extends Phaser.Scene {
         fontSize: "32px",
         color: "#FFFFFF",
         backgroundColor: "#494949",
-        fontFamily: "Arial",
+        fontFamily: "Blackletter",
       })
       .setOrigin(0.5);
 
     teamButton.setInteractive({ useHandCursor: true });
     teamButton.on("pointerdown", () => {
       console.log(" team button is pressed");
+    });
+
+    let musicIsPlaying = true;
+    const muteBackground = this.add
+      .image(1200, 680, "mute", {
+        width: "50px",
+        height: "50px",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
+    muteBackground.setInteractive({ useHandCursor: true });
+    muteBackground.on("pointerdown", () => {
+      if (musicIsPlaying) {
+        musicIsPlaying = false;
+        music.stop();
+      } else {
+        musicIsPlaying = true;
+        music.play();
+      }
     });
   }
 }

@@ -9,7 +9,7 @@ export function createPhaserGame(parentId) {
     width: 1280,
     height: 720,
     backgroundColor: "#0b0b10",
-    scene: [ComingSoon],
+    scene: [HomePage],
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   });
 }

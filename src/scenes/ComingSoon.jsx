@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import background from "../assets/background.png";
 import backgroundmp3 from "../assets/background.mp3";
+import mute from "../assets/mute.png";
 
 export default class ComingSoon extends Phaser.Scene {
   constructor() {
@@ -10,6 +11,7 @@ export default class ComingSoon extends Phaser.Scene {
   preload() {
     this.load.image("background", background);
     this.load.audio("backgroundmp3", backgroundmp3);
+    this.load.image("mute", mute);
   }
 
   create() {
@@ -24,7 +26,7 @@ export default class ComingSoon extends Phaser.Scene {
     this.add
       .text(this.scale.width / 2, 100, "Coming Soon ...", {
         fontSize: "64px",
-        fontFamily: "Arial",
+        fontFamily: "Blackletter",
         color: "#FFFFFF",
       })
       .setOrigin(0.5);
@@ -36,7 +38,7 @@ export default class ComingSoon extends Phaser.Scene {
         "LootBox: unlock powerful artifacts - to assist in your fight against evil!",
         {
           fontSize: "32px",
-          fontFamily: "Arial",
+          fontFamily: "Blackletter",
           color: "#FFFFFF",
         },
       )
@@ -49,7 +51,7 @@ export default class ComingSoon extends Phaser.Scene {
         "Item Shop: Use your hard earned money to enhance your character!",
         {
           fontSize: "32px",
-          fontFamily: "Arial",
+          fontFamily: "Blackletter",
           color: "#FFFFFF",
         },
       )
@@ -62,7 +64,7 @@ export default class ComingSoon extends Phaser.Scene {
         "Character Skills: Empower your character with unique skills!",
         {
           fontSize: "32px",
-          fontFamily: "Arial",
+          fontFamily: "Blackletter",
           color: "#FFFFFF",
         },
       )
@@ -75,7 +77,7 @@ export default class ComingSoon extends Phaser.Scene {
         "New monsters: Encounter new horrors as you descend into MADNESS!",
         {
           fontSize: "32px",
-          fontFamily: "Arial",
+          fontFamily: "Blackletter",
           color: "#FFFFFF",
         },
       )
@@ -88,10 +90,29 @@ export default class ComingSoon extends Phaser.Scene {
         "Create your own quiz: Challage your allies' feeble knowledge!",
         {
           fontSize: "32px",
-          fontFamily: "Arial",
+          fontFamily: "Blackletter",
           color: "#FFFFFF",
         },
       )
       .setOrigin(0.5);
+
+    let musicIsPlaying = true;
+    const muteBackground = this.add
+      .image(1200, 680, "mute", {
+        width: "50px",
+        height: "50px",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
+    muteBackground.setInteractive({ useHandCursor: true });
+    muteBackground.on("pointerdown", () => {
+      if (musicIsPlaying) {
+        musicIsPlaying = false;
+        music.stop();
+      } else {
+        musicIsPlaying = true;
+        music.play();
+      }
+    });
   }
 }
