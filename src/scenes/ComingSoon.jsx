@@ -6,7 +6,7 @@ import mute from "../assets/mute.png";
 
 export default class ComingSoon extends Phaser.Scene {
   constructor() {
-    super(ComingSoon);
+    super("ComingSoon");
   }
 
   preload() {
