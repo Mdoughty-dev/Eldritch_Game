@@ -16,19 +16,32 @@ export default function SocketTesting() {
 
   const [players, setPlayers] = useState([]);
 
+  const [gameData, setGameData] = useState(null);
+
+  const [characterId] = useState(1); // Hardcoded to 1 for debugging
+
+  const [timeLeft, setTimeLeft] = useState(0);
+
   useEffect(() => {
     socket.on("connect", () => {
       console.log("connected:", socket.id);
     });
 
     socket.on("lobbyUpdated", (payload) => {
+      console.log("[Lobby Update]:", payload);
       setRoomCode(payload.roomCode);
       setPlayers(payload.players);
       setPhase(payload.roomStatus);
     });
 
+    socket.on("roundStarted", (payload) => {
+      console.log("[Round Started]:", payload);
+      setGameData(payload);
+      setPhase("in-game");
+    });
+
     socket.on("joinError", (err) => alert(err.message));
-    socket.on("startError", (err) => console.log("startError", err));
+    socket.on("startError", (err) => alert(err.message));
 
     return () => {
       socket.off("connect");
@@ -38,6 +51,28 @@ export default function SocketTesting() {
     };
   }, []);
 
+  // useEffect to render the countdown in UI
+  useEffect(() => {
+    //  guard
+    const deadline = gameData?.gameState?.roundDeadline;
+    if (!deadline) return;
+
+    // calculate how many seconds are left
+    const updateTimer = () => {
+      const now = Date.now();
+      const msRemaining = deadline - now;
+      const secondsRemaining = Math.max(0, Math.floor(msRemaining / 1000));
+
+      setTimeLeft(secondsRemaining);
+
+      if (secondsRemaining <= 0) clearInterval(timerId);
+    };
+
+    const timerId = setInterval(updateTimer, 100);
+
+    return () => clearInterval(timerId);
+  }, [gameData]);
+
   const handleCreateRoom = (e) => {
     e.preventDefault();
     if (!name.trim()) return alert("Please enter a name");
@@ -46,6 +81,7 @@ export default function SocketTesting() {
       name: name,
       userId: userId,
       roomCode: null,
+      characterId,
     };
 
     socket.emit("joinRoom", payload);
@@ -60,6 +96,7 @@ export default function SocketTesting() {
       name: name,
       userId: userId,
       roomCode: roomCode.trim().toUpperCase(),
+      characterId,
     };
 
     socket.emit("joinRoom", payload);
@@ -132,11 +169,38 @@ export default function SocketTesting() {
       )}
 
       {/* 3. GAME PHASE */}
-      {phase === "in-game" && (
+      {phase === "in-game" && gameData && (
         <div>
           <h1>Phase: In-Game</h1>
+          <p>
+            Monster: {gameData.monster.name} ({gameData.monster.hp}/
+            {gameData.monster.maxHp})
+          </p>
+
+          <h2>Timer: {timeLeft}s</h2>
+          <p>Question: {gameData.question.prompt}</p>
+          {Object.entries(gameData.question.options).map(([key, text]) => (
+            <button
+              key={key}
+              onClick={() => socket.emit("submitAnswer", { answer: key })}
+            >
+              {key}: {text}
+            </button>
+          ))}
         </div>
       )}
+
+      <hr />
+      <div>
+        <h3>Debugging</h3>
+        <pre>
+          {JSON.stringify(
+            { userId, phase, roomCode, players, gameData },
+            null,
+            2
+          )}
+        </pre>
+      </div>
     </div>
   );
 }
