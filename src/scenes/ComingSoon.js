@@ -3,7 +3,6 @@ import background from '../assets/background.png';
 import backgroundmp3 from '../assets/background.mp3';
 import createMuteToggle from '../game/ui/BackgroundMusicToggle';
 import mute from '../assets/mute.png';
-import healthBar from '../game/ui/HealthBar';
 
 export default class ComingSoon extends Phaser.Scene {
 	constructor() {
@@ -20,7 +19,6 @@ export default class ComingSoon extends Phaser.Scene {
 		this.createBackground();
 		this.createList();
 		createMuteToggle(this, 'backgroundmp3');
-		healthBar(this, 1000);
 
 		this.add
 			.text(this.scale.width / 2, 100, 'Coming Soon ...', {
