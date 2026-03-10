@@ -14,10 +14,10 @@ const charArray = Object.keys(characters).map((path) =>
 console.log(charArray);
 
 const bioArray = [
-  "My name is merlin \n I am wizard",
-  "I am a mage",
-  "I am a warrior",
-  "I am dead",
+  "Name: Denis McCload\nAge:42\nRace: Human\nBackstory: I lost everything\nMy family, my home, my hope.\nI won't lose my will to fight",
+  "Name: Greystaff\nAge:72\nRace: Wizard\nBackstory: Feel my power\nI am the great wizzard\nI'm not delusional",
+  "Name: Patris Deathstare\nAge:32\nRace: Human\nBackstory: It is done.\nI crew up in the cult\nthat made this.\nNow I must end it all",
+"Name: Unknown \nAge:Unknown\nRace: Dead\nBackstory: Kill\n....Kill\....Kill\nKILL THEM ALL!",
 ];
 
 export default class characterSceneSolo extends Phaser.Scene {
@@ -50,28 +50,34 @@ export default class characterSceneSolo extends Phaser.Scene {
     bg.setScale(Math.max(scaleX, scaleY));
 
     const title = this.add
-      .text(this.scale.width / 2, 175, "Choose your Character", {
-        fontSize: "72px",
-        color: "#d8d8ff",
-      })
-      .setOrigin(0.5);
+  .text(this.scale.width / 2, 125, "Choose your Character", {
+    fontSize: "72px",
+    fontFamily: 'Georgia, "Times New Roman", serif',
+    fontStyle: "bold",
+    color: "#d8d8ff",
+    stroke: "#120c1c",
+    strokeThickness: 6,
+  })
+  .setOrigin(0.5);
+
+title.setShadow(4, 4, "#000000", 8, true, true);
     let bioText = this.add
-      .text(950, 325, `BIO:\n ${bioArray[0]}`, {
-        fontSize: "32px",
-        color: "#d8d8ff",
+      .text(1000, 450, `BIO:\n${bioArray[0]}`, {
+        fontSize: "24px",
+        color: "#e8e8fc",
       })
       .setOrigin(0.5);
-    const buttonColor = "rgba(187, 12, 240, 0.68)";
-    const disabledButton = "rgba(187,12,240,0.3)";
+    const buttonColor = "rgba(233, 190, 247, 0.98)";
+    const disabledButton = "rgba(139, 97, 151, 0.3)";
     const nextButton = this.add
-      .text(this.scale.width / 2 + 250, 450, "Next", {
+      .text(this.scale.width / 2 + 340, 600, "Next", {
         fontSize: "54px",
         color: buttonColor,
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
     const prevButton = this.add
-      .text(this.scale.width / 2 - 320, 450, "Previous", {
+      .text(this.scale.width / 2 - 340, 600, "Previous", {
         fontSize: "54px",
         color: disabledButton,
       })
@@ -79,8 +85,9 @@ export default class characterSceneSolo extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     const submitButton = this.add
       .text(this.scale.width / 2, 675, "Select Character", {
+        
         fontSize: "54px",
-        color: "rgb(139, 132, 132)",
+        color: "rgb(243, 170, 170)",
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
@@ -94,7 +101,7 @@ export default class characterSceneSolo extends Phaser.Scene {
       }
       if (currentCharacter) currentCharacter.destroy();
       counter += 1;
-      bioText.setText(`BIO:\n ${bioArray[counter]}`);
+      bioText.setText(`BIO:\n${bioArray[counter]}`);
       prevButton.setColor(buttonColor);
       currentCharacter = this.loadCharacter(charArray[counter]);
     });
@@ -111,7 +118,7 @@ export default class characterSceneSolo extends Phaser.Scene {
       if (currentCharacter) currentCharacter.destroy();
       counter -= 1;
       nextButton.setColor(buttonColor);
-      bioText.setText(`BIO:\n ${bioArray[counter]}`);
+      bioText.setText(`BIO:\n${bioArray[counter]}`);
       currentCharacter = this.loadCharacter(charArray[counter]);
     });
     submitButton.on("pointerdown", () => {
