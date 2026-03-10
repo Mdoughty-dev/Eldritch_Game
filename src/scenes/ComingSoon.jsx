@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import background from "../assets/background.png";
 import backgroundmp3 from "../assets/background.mp3";
+import createMuteToggle from "../game/ui/BackgroundMusicToggle";
 import mute from "../assets/mute.png";
 
 export default class ComingSoon extends Phaser.Scene {
@@ -15,13 +16,10 @@ export default class ComingSoon extends Phaser.Scene {
   }
 
   create() {
-    const background = this.add.image(0, 0, "background").setOrigin(0);
-    const scaleX = this.scale.width / background.width;
-    const scaleY = this.scale.height / background.height;
-    background.setScale(Math.max(scaleX, scaleY));
-
-    const music = this.sound.add("backgroundmp3", { volume: 0.1 });
-    music.play();
+    this.createBackground();
+    this.createList();
+    createMuteToggle(this, "backgroundmp3");
+    this.createHealthBar();
 
     this.add
       .text(this.scale.width / 2, 100, "Coming Soon ...", {
@@ -30,7 +28,16 @@ export default class ComingSoon extends Phaser.Scene {
         color: "#FFFFFF",
       })
       .setOrigin(0.5);
+  }
 
+  createBackground() {
+    const background = this.add.image(0, 0, "background").setOrigin(0);
+    const scaleX = this.scale.width / background.width;
+    const scaleY = this.scale.height / background.height;
+    background.setScale(Math.max(scaleX, scaleY));
+  }
+
+  createList() {
     this.add
       .text(
         this.scale.width / 2,
@@ -96,23 +103,52 @@ export default class ComingSoon extends Phaser.Scene {
       )
       .setOrigin(0.5);
 
-    let musicIsPlaying = true;
-    const muteBackground = this.add
-      .image(1200, 680, "mute", {
-        width: "50px",
-        height: "50px",
-        color: "#ffffff",
+    this.add
+      .text(
+        this.scale.width / 2,
+        500,
+        "Haptic feedback: Feel the wrath of the abominations you face!",
+        {
+          fontSize: "32px",
+          fontFamily: "Blackletter",
+          color: "#FFFFFF",
+        },
+      )
+      .setOrigin(0.5);
+  }
+
+  createHealthBar() {
+    this.add.rectangle(500, 700, 205, 55, 0x000000);
+    const currentHealth = this.add.rectangle(500, 700, 200, 50, 0xff0000);
+
+    const attackButton = this.add
+      .text(this.scale.width / 2, 650, "Attack", {
+        fontSize: "32px",
+        color: "#FFFFFF",
+        backgroundColor: "#494949",
+        fontFamily: "Blackletter",
       })
       .setOrigin(0.5);
-    muteBackground.setInteractive({ useHandCursor: true });
-    muteBackground.on("pointerdown", () => {
-      if (musicIsPlaying) {
-        musicIsPlaying = false;
-        music.stop();
-      } else {
-        musicIsPlaying = true;
-        music.play();
+
+    attackButton.setInteractive({ useHandCursor: true });
+    attackButton.on("pointerdown", () => {
+      const damage = 30;
+      if (currentHealth.width - damage > 0) {
+        this.tweens.add({
+          targets: currentHealth,
+          width: currentHealth.width - damage,
+          duration: 500,
+          ease: "Sine.easeInOut",
+        });
+      } else if (currentHealth.width - damage <= 0) {
+        this.tweens.add({
+          targets: currentHealth,
+          width: 0,
+          duration: 500,
+          ease: "Sine.easeInOut",
+        });
       }
+      console.log("attack button is pressed");
     });
   }
 }
