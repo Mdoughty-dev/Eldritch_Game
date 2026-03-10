@@ -28,11 +28,13 @@ export default function SocketTesting() {
     });
 
     socket.on("joinError", (err) => alert(err.message));
+    socket.on("startError", (err) => console.log("startError", err));
 
     return () => {
       socket.off("connect");
       socket.off("lobbyUpdated");
       socket.off("joinError");
+      socket.off("startError");
     };
   }, []);
 
@@ -61,6 +63,11 @@ export default function SocketTesting() {
     };
 
     socket.emit("joinRoom", payload);
+  };
+
+  const handleStartGame = (e) => {
+    e.preventDefault();
+    socket.emit("startGame");
   };
 
   return (
@@ -120,7 +127,7 @@ export default function SocketTesting() {
               </li>
             ))}
           </ul>
-          <button onClick={() => setPhase("in-game")}>Game Start</button>
+          <button onClick={handleStartGame}>Game Start</button>
         </div>
       )}
 
