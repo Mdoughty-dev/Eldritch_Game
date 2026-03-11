@@ -48,6 +48,7 @@ export default class CharacterSceneSolo extends Phaser.Scene {
       .text(1000, 450, `BIO:\n${currentData.bio}`, {
         fontSize: "24px",
         color: "#e8e8fc",
+        backgroundColor: "rgba(0, 0, 0, 0.28)",
         align: "left",
         wordWrap: { width: 420 },
       })
