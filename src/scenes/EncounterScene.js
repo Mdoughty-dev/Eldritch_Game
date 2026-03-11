@@ -11,7 +11,20 @@ export default class EncounterScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.selectedIndex = data?.selectedIndex ?? null;
+    this.selectedIndex = data?.selectedIndex ?? 0;
+
+    this.player = characters[this.selectedIndex];
+    this.monster = monsters[0];
+
+    this.playerStats = {
+      hp: this.player.base_sanity,
+      maxHp: this.player.base_sanity,
+    };
+
+    this.monsterStats = {
+      hp: this.monster.max_hp,
+      maxHp: this.monster.max_hp,
+    };
   }
 
   preload() {
@@ -32,7 +45,11 @@ export default class EncounterScene extends Phaser.Scene {
       },
     });
 
-    this.ui.setHud({});
+    this.ui.setHud({
+      player: this.playerStats,
+      monster: this.monsterStats,
+    });
+
     this.ui.setQuestion({});
     this.ui.setTimer("");
   }

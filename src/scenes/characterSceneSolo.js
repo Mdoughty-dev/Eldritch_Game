@@ -28,26 +28,17 @@ export default class characterSceneSolo extends Phaser.Scene {
     super("characterSceneSolo");
   }
 
-  loadCharacter(character) {
-    character = this.add
-      .image(this.scale.width / 2, 450, character)
+  loadCharacter(imageKey) {
+    const character = this.add
+      .image(this.scale.width / 2, 450, imageKey)
       .setOrigin(0.5);
+
     character.setScale(0.4);
     return character;
   }
 
-  preload() {
-    this.load.image("bg", backgroundImage);
-
-    for (const path in characters) {
-      const key = path.split("/").pop().replace(".png", "");
-      console.log(key);
-      console.log(characters[path].default);
-      this.load.image(key, characters[path].default);
-    }
-  }
   create() {
-    const bg = this.add.image(0, 0, "bg").setOrigin(0);
+    const bg = this.add.image(0, 0, "background").setOrigin(0);
     const scaleX = this.scale.width / bg.width;
     const scaleY = this.scale.height / bg.height;
     bg.setScale(Math.max(scaleX, scaleY));
@@ -70,64 +61,73 @@ export default class characterSceneSolo extends Phaser.Scene {
       .text(1000, 450, `BIO:\n${bioArray[0]}`, {
         fontSize: "24px",
         color: "#e8e8fc",
+        align: "left",
+        wordWrap: { width: 420 },
       })
       .setOrigin(0.5);
-    const buttonColor = "rgba(233, 190, 247, 0.98)";
-    const disabledButton = "rgba(139, 97, 151, 0.3)";
+
+    const buttonColor = "#e9bef7";
+    const disabledButton = "#8b6197";
+
     const nextButton = this.add
       .text(this.scale.width / 2 + 340, 600, "Next", {
         fontSize: "54px",
         color: buttonColor,
+        fontFamily: "Blackletter",
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
+
     const prevButton = this.add
       .text(this.scale.width / 2 - 340, 600, "Previous", {
         fontSize: "54px",
         color: disabledButton,
+        fontFamily: "Blackletter",
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
+
     const submitButton = this.add
       .text(this.scale.width / 2, 675, "Select Character", {
         fontSize: "54px",
-        color: "rgb(243, 170, 170)",
+        color: "#f3aaaa",
+        fontFamily: "Blackletter",
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    let counter = 0;
-    let currentCharacter = this.loadCharacter(charArray[counter]);
-    nextButton.on("pointerdown", () => {
-      console.log("pointer down pressed");
-      if (counter >= charArray.length - 1) {
-        nextButton.setColor(disabledButton);
-        return;
-      }
-      if (currentCharacter) currentCharacter.destroy();
-      counter += 1;
-      bioText.setText(`BIO:\n${bioArray[counter]}`);
-      prevButton.setColor(buttonColor);
-      currentCharacter = this.loadCharacter(charArray[counter]);
-    });
-    prevButton.on("pointerdown", () => {
-      console.log("pointer down pressed");
-      if (counter <= 0) {
-        prevButton.setColor(disabledButton);
 
-        return;
-      }
-      if (counter > 0) {
-        prevButton.setColor(buttonColor);
-      }
+    const updateView = () => {
+      currentData = characters[counter];
+
       if (currentCharacter) currentCharacter.destroy();
-      counter -= 1;
-      nextButton.setColor(buttonColor);
-      bioText.setText(`BIO:\n${bioArray[counter]}`);
-      currentCharacter = this.loadCharacter(charArray[counter]);
+      currentCharacter = this.loadCharacter(currentData.image_name);
+
+      bioText.setText(`BIO:\n${currentData.bio}`);
+
+      prevButton.setColor(counter <= 0 ? disabledButton : buttonColor);
+      nextButton.setColor(
+        counter >= characters.length - 1 ? disabledButton : buttonColor
+      );
+    };
+
+    nextButton.on("pointerdown", () => {
+      if (counter >= characters.length - 1) return;
+      counter += 1;
+      updateView();
     });
+
+    prevButton.on("pointerdown", () => {
+      if (counter <= 0) return;
+      counter -= 1;
+      updateView();
+    });
+
     submitButton.on("pointerdown", () => {
-      console.log(counter);
-      this.scene.start("EncounterScene");
+      this.scene.start("EncounterScene", {
+        selectedIndex: counter,
+        mode: "solo",
+        difficulty: "easy",
+      });
     });
   }
 }
