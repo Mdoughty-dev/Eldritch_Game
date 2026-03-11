@@ -4,15 +4,40 @@ import backgroundmp3 from "../assets/background.mp3";
 import createMuteToggle from "../game/ui/BackgroundMusicToggle";
 import mute from "../assets/mute.png";
 
+// character images
+import denisImg from "../assets/Denis.png";
+import greyStaffImg from "../assets/Greystaff.png";
+import patrisImg from "../assets/Patris.png";
+import unknownImg from "../assets/Unknown.png";
+
+// monster images
+import sewerBeastImg from "../assets/sewer_rat.png";
+import paleSlugImg from "../assets/pale_slug.png";
+import eldritchAbominationImg from "../assets/eldritch_abomination.png";
+
 export default class HomePage extends Phaser.Scene {
   constructor() {
     super("HomePage");
   }
 
   preload() {
+    // homepage assets
     this.load.image("background", background);
     this.load.audio("backgroundmp3", backgroundmp3);
     this.load.image("mute", mute);
+
+    // character assets
+    // keys must match your character.image_name values
+    this.load.image("Denis", denisImg);
+    this.load.image("GreyStaff", greyStaffImg);
+    this.load.image("Patris", patrisImg);
+    this.load.image("Unknown", unknownImg);
+
+    // monster assets
+    // keys must match your monster.image_name values
+    this.load.image("sewer_rat", sewerBeastImg);
+    this.load.image("pale_slug", paleSlugImg);
+    this.load.image("eldritch_abomination", eldritchAbominationImg);
   }
 
   create() {
@@ -31,10 +56,10 @@ export default class HomePage extends Phaser.Scene {
   }
 
   createBackground() {
-    const background = this.add.image(0, 0, "background").setOrigin(0);
-    const scaleX = this.scale.width / background.width;
-    const scaleY = this.scale.height / background.height;
-    background.setScale(Math.max(scaleX, scaleY));
+    const bg = this.add.image(0, 0, "background").setOrigin(0);
+    const scaleX = this.scale.width / bg.width;
+    const scaleY = this.scale.height / bg.height;
+    bg.setScale(Math.max(scaleX, scaleY));
   }
 
   createSoloButton() {
@@ -50,7 +75,7 @@ export default class HomePage extends Phaser.Scene {
     soloButton.setInteractive({ useHandCursor: true });
     soloButton.on("pointerdown", () => {
       console.log("solo button is pressed");
-      this.scene.start("characterSceneSolo")
+      this.scene.start("characterSceneSolo");
     });
   }
 
@@ -66,7 +91,7 @@ export default class HomePage extends Phaser.Scene {
 
     teamButton.setInteractive({ useHandCursor: true });
     teamButton.on("pointerdown", () => {
-      console.log(" team button is pressed");
+      console.log("team button is pressed");
     });
   }
 }

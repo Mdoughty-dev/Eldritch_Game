@@ -1,9 +1,5 @@
-import createHealthBar from "./HealthBar";
-
-
 export function createEncounterUI(scene, opts = {}) {
   const { width = scene.scale.width, height = scene.scale.height, onAnswer = () => {} } = opts;
-  const healthbar = createHealthBar(); 
   const ui = {};
 
   ui.playerHpText = scene.add.text(30, 20, "HP: --/--", {
