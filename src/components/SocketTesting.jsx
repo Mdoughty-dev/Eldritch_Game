@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-// this alloows connectin to backend
+// Connect to backend
 const socket = io("http://localhost:3000");
 
 export default function SocketTesting() {
-  const [step, setStep] = useState("choose-mode"); // the options are: setup, lobby, in-game, ended
-  const [mode, setMode] = useState(""); // options: solo or multiplayer
+  const [step, setStep] = useState("choose-mode");
+  const [mode, setMode] = useState("");
   const [name, setName] = useState("");
   const [userId] = useState("user_" + Math.floor(Math.random() * 9999));
   const [characterId, setCharacterId] = useState(1);
   const [roomCode, setRoomCode] = useState("");
   const [players, setPlayers] = useState([]);
   const [gameData, setGameData] = useState(null);
+  const [lastRoundResult, setLastRoundResult] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [hasAnswered, setHasAnswered] = useState(false);
 
-  // here I listent to all the custom events the backend is sending
   useEffect(() => {
     socket.on("connect", () => console.log("Connected:", socket.id));
 
@@ -28,11 +28,13 @@ export default function SocketTesting() {
 
     socket.on("roundStarted", (payload) => {
       setGameData(payload);
+      setLastRoundResult(null); // Clear previous result when new round starts
       setHasAnswered(false);
       setStep("in-game");
     });
 
     socket.on("roundResult", (payload) => {
+      setLastRoundResult(payload);
       console.log("Round result received:", payload);
     });
 
@@ -57,14 +59,14 @@ export default function SocketTesting() {
     };
   }, []);
 
-  // SOLO MODE: basically skip the lobby
+  // AUTO-START SOLO
   useEffect(() => {
     if (step === "lobby" && mode === "solo") {
       socket.emit("startGame");
     }
   }, [step, mode]);
 
-  // timer logic based on deadline timestampe sent by BE
+  // TIMER LOGIC
   useEffect(() => {
     const deadline = gameData?.gameState?.roundDeadline;
     if (!deadline) return;
@@ -80,24 +82,15 @@ export default function SocketTesting() {
     return () => clearInterval(timerId);
   }, [gameData]);
 
-  // BUTTONs HANDLER FUNCTIONS
-
-  function selectMode(selectedMode) {
-    setMode(selectedMode);
-    setStep("setup");
-  }
-
   function handleStartSolo(e) {
     e.preventDefault();
     socket.emit("joinRoom", { name, userId, roomCode: null, characterId });
   }
-  // here roomCode is set to null to signal BE that it neds to create a new room instad of joining one
 
   function handleCreateMultiplayer(e) {
     e.preventDefault();
     socket.emit("joinRoom", { name, userId, roomCode: null, characterId });
   }
-  // here roomCode is set to null to signal BE that it neds to create a new room instad of joining one
 
   function handleJoinMultiplayer(e) {
     e.preventDefault();
@@ -120,22 +113,31 @@ export default function SocketTesting() {
 
   return (
     <div className="socket-testing">
-      {/* SOLO - MULTIPLAYER CHOICE SCREEN */}
       {step === "choose-mode" && (
         <div>
           <h1>Choose Game Mode</h1>
-          <button onClick={() => selectMode("solo")}>Play Solo</button>
-          <button onClick={() => selectMode("multiplayer")}>
+          <button
+            onClick={() => {
+              setMode("solo");
+              setStep("setup");
+            }}
+          >
+            Play Solo
+          </button>
+          <button
+            onClick={() => {
+              setMode("multiplayer");
+              setStep("setup");
+            }}
+          >
             Play Multiplayer
           </button>
         </div>
       )}
 
-      {/* SET SCREEN character and name */}
       {step === "setup" && (
         <div>
           <h1>{mode === "solo" ? "Solo Setup" : "Multiplayer Setup"}</h1>
-
           <label>Select Character: </label>
           <select
             value={characterId}
@@ -191,14 +193,13 @@ export default function SocketTesting() {
         </div>
       )}
 
-      {/* LOBBY SCREEN N.B. only shown in multuplayer mode */}
       {step === "lobby" && mode === "multiplayer" && (
         <div>
           <h1>Lobby</h1>
           <p>
             Room Code: <strong>{roomCode}</strong>
           </p>
-          <h3>Players in room:</h3>
+          <h3>Players:</h3>
           <ul>
             {players.map((p) => (
               <li key={p.userId}>
@@ -211,57 +212,62 @@ export default function SocketTesting() {
         </div>
       )}
 
-      {/* GAME SCREEN */}
       {step === "in-game" && gameData && (
         <div>
           <h1>Battle Phase</h1>
+          <h3>
+            Team HP: {gameData.gameState.teamHp} /{" "}
+            {gameData.gameState.maxTeamHp}| Monster HP: {gameData.monster.hp} /{" "}
+            {gameData.monster.maxHp}
+          </h3>
+          <p>
+            Time Left: {timeLeft}s | Round: {gameData.gameState.roundNumber}
+          </p>
 
-          <div>
-            <h3>Team HP: {gameData.gameState.teamHp}</h3>
-            <h3>
-              {gameData.monster.name} HP: {gameData.monster.hp} /{" "}
-              {gameData.monster.maxHp}
-            </h3>
-            <p>
-              Time Left: {timeLeft}s | Round: {gameData.gameState.roundNumber}
-            </p>
-          </div>
+          {/* SHOW RESULT IF AVAILABLE */}
+          {lastRoundResult && (
+            <div
+              style={{ background: "#222", padding: "10px", margin: "10px 0" }}
+            >
+              <h4>Last Round Result:</h4>
+              <p>Correct Option: {lastRoundResult.correctOption}</p>
+              <p>Team Damage Taken: {lastRoundResult.teamDamageTaken}</p>
+              <p>Monster Damage Taken: {lastRoundResult.monsterDamageTaken}</p>
+            </div>
+          )}
 
           <hr />
-
           <h2>{gameData.question.prompt}</h2>
-          <div>
-            {["a", "b", "c", "d"].map((key) => (
-              <button
-                key={key}
-                onClick={() => submitAnswer(key)}
-                disabled={hasAnswered}
-              >
-                {key.toUpperCase()}: {gameData.question.options[key]}
-              </button>
-            ))}
-          </div>
-
-          {hasAnswered && <p>Waiting for other players...</p>}
+          {["a", "b", "c", "d"].map((key) => (
+            <button
+              key={key}
+              onClick={() => submitAnswer(key)}
+              disabled={hasAnswered}
+            >
+              {key.toUpperCase()}: {gameData.question.options[key]}
+            </button>
+          ))}
+          {hasAnswered && <p>Waiting for others...</p>}
         </div>
       )}
 
-      {/* game over screwn */}
       {step === "ended" && (
         <div>
           <h1>Game Over</h1>
-          <p>Refresh the page to play again</p>
+          <button onClick={() => window.location.reload()}>Play Again</button>
         </div>
       )}
 
-      {/* Debug box with payload info, it shows what the BE is sending and making available*/}
-      <hr />
       <div className="debug-box">
-        <h3>Debug Data </h3>
-        <p>This shows exactly what data the FE currently has access to:</p>
+        <h3>Debug Data</h3>
         <pre>
           {JSON.stringify(
-            { step, mode, roomCode, userId, hasAnswered, players, gameData },
+            {
+              step,
+              roomCode,
+              gameData: gameData ? "Present" : "None",
+              lastRoundResult: !!lastRoundResult,
+            },
             null,
             2
           )}
