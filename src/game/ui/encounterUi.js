@@ -63,22 +63,41 @@ export function createEncounterUI(scene, opts = {}) {
 		ui.answerButtons.push(btn);
 	}
 
-	ui.setQuestion = (q = {}) => {
-		ui.questionText.setText(q.prompt ?? '');
-
-		ui.answerButtons.forEach((btn, i) => {
-			const optionText = q.options?.[i] ?? '';
-			btn.setText(optionText ? `${i + 1}. ${optionText}` : '');
-			btn.setColor('#ffffff');
-			btn.setAlpha(1);
-			btn.removeInteractive();
-			btn.setInteractive({ useHandCursor: true });
-		});
-	};
-
 	ui.lockAnswers = () => {
-		ui.answerButtons.forEach((b) => b.disableInteractive());
-	};
+	ui.answerButtons.forEach((btn) => {
+		btn.disableInteractive();
+	});
+};
+
+ui.unlockAnswers = () => {
+	ui.answerButtons.forEach((btn) => {
+		btn.setAlpha(1);
+		btn.setColor('#ffffff');
+
+		if (!btn.input) {
+			btn.setInteractive({ useHandCursor: true });
+		} else {
+			btn.input.enabled = true;
+		}
+	});
+};
+
+ui.setQuestion = (q = {}) => {
+	ui.questionText.setText(q.prompt ?? '');
+
+	ui.answerButtons.forEach((btn, i) => {
+		const optionText = q.options?.[i] ?? '';
+		btn.setText(optionText ? `${i + 1}. ${optionText}` : '');
+		btn.setColor('#ffffff');
+		btn.setAlpha(1);
+
+		if (!btn.input) {
+			btn.setInteractive({ useHandCursor: true });
+		} else {
+			btn.input.enabled = true;
+		}
+	});
+};
 
 	ui.showAnswerFeedback = (correctIndex, chosenIndex) => {
 		ui.answerButtons.forEach((b, i) => {
@@ -93,10 +112,23 @@ export function createEncounterUI(scene, opts = {}) {
 	};
 
 	ui.setHud = ({ player = {}, monster = {} } = {}) => {
+		const playerHp = player.hp ?? 0;
+		const playerMaxHp = player.maxHp ?? 1;
+		const monsterHp = monster.hp ?? 0;
+		const monsterMaxHp = monster.maxHp ?? 1;
+
 		ui.playerHpText.setText(`HP: ${player.hp ?? '--'}/${player.maxHp ?? '--'}`);
 		ui.monsterHpText.setText(
-			`MON: ${monster.hp ?? '--'}/${monster.maxHp ?? '--'}`,
+			`MON: ${monster.hp ?? '--'}/${monster.maxHp ?? '--'}`
 		);
+
+		if (ui.playerHealthBar?.setHealth) {
+			ui.playerHealthBar.setHealth(playerHp, playerMaxHp);
+		}
+
+		if (ui.monsterHealthBar?.setHealth) {
+			ui.monsterHealthBar.setHealth(monsterHp, monsterMaxHp);
+		}
 	};
 
 	ui.showEndOverlay = (msg = '', onContinue) => {

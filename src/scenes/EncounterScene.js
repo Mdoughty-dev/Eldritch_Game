@@ -43,6 +43,9 @@ export default class EncounterScene extends Phaser.Scene {
     }
 
     this.controller.start();
+    this.events.once("shutdown", () => {
+  this.shutdown();
+});
   }
 
   createBackground() {
