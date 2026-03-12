@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import background from "../assets/background.png";
 import backgroundmp3 from "../assets/background.mp3";
 import createMuteToggle from "../game/ui/BackgroundMusicToggle";
-import { getSocket } from "../game/net/socketClient";
+
 import mute from "../assets/mute.png";
 
 // character images
@@ -55,10 +55,6 @@ export default class HomePage extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-      const socket = getSocket();
-
-  socket.on("connect", () => {
-    console.log("connected:", socket.id)});
   }
 
   createBackground() {
@@ -94,9 +90,13 @@ export default class HomePage extends Phaser.Scene {
         fontFamily: "Blackletter",
       })
       .setOrigin(0.5);
+    
 
     teamButton.setInteractive({ useHandCursor: true });
-    teamButton.on("pointerdown", () => {
-    });
+    teamButton.on("pointerdown", () =>{
+        console.log("group button is pressed");
+      this.scene.start("GroupLobbyScene");
+      })
+    
   }
 }
