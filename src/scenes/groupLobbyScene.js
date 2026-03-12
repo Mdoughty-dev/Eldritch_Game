@@ -108,16 +108,20 @@ export default class GroupLobbyScene extends Phaser.Scene {
     };
 
     this.handleRoundStarted = (payload) => {
-      const currentCharacter = characters[this.selectedIndex];
+  const currentCharacter = characters[this.selectedIndex];
 
-      this.scene.start("EncounterScene", {
-        mode: "group",
-        roomCode: this.roomCode,
-        selectedIndex: this.selectedIndex,
-        roundStartedPayload: payload,
-        groupCharacter: currentCharacter,
-      });
-    };
+
+  this.scene.start("EncounterScene", {
+    mode: "group",
+    roomCode: this.roomCode,
+    selectedIndex: this.selectedIndex,
+    roundStartedPayload: payload,
+    groupCharacter: currentCharacter,
+  });
+  this.events.once("shutdown", () => {
+  this.shutdown();
+});
+};
 
     onLobbyUpdated(this.handleLobbyUpdated);
     onJoinError(this.handleJoinError);

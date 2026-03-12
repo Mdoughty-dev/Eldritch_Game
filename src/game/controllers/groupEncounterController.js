@@ -22,7 +22,40 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     teamHpMax: null,
     monsterMaxHp: null,
     currentMonsterHp: null,
+    isPlayingHitFx: false,
   };
+
+  function playMonsterHitFx() {
+    if (!state.groupMonsterSprite) return;
+
+    const monster = state.groupMonsterSprite;
+    const startX = monster.x;
+    const startY = monster.y;
+    const originalScaleX = monster.scaleX;
+    const originalScaleY = monster.scaleY;
+
+    state.isPlayingHitFx = true;
+
+    scene.tweens.killTweensOf(monster);
+
+    monster.clearTint();
+    monster.setTint(0xff4444);
+    monster.setScale(originalScaleX * 1.08, originalScaleY * 1.08);
+
+    scene.tweens.add({
+      targets: monster,
+      x: startX + 18,
+      duration: 45,
+      yoyo: true,
+      repeat: 4,
+      onComplete: () => {
+        monster.setPosition(startX, startY);
+        monster.clearTint();
+        monster.setScale(originalScaleX, originalScaleY);
+        state.isPlayingHitFx = false;
+      },
+    });
+  }
 
   function start() {
     if (!state.roundStartedPayload) {
@@ -92,7 +125,11 @@ export function createGroupEncounterController(scene, ui, sceneData) {
         .setOrigin(0.5)
         .setScale(0.5);
     } else {
+      scene.tweens.killTweensOf(state.groupMonsterSprite);
+      state.groupMonsterSprite.clearTint();
       state.groupMonsterSprite.setTexture(monster.image_name);
+      state.groupMonsterSprite.setPosition(980, 380);
+      state.groupMonsterSprite.setScale(0.5);
     }
 
     ui.setHud({
@@ -105,6 +142,8 @@ export function createGroupEncounterController(scene, ui, sceneData) {
         maxHp: monster.maxHp,
       },
     });
+
+    ui.unlockAnswers();
 
     ui.setQuestion({
       prompt: question.prompt,
@@ -151,11 +190,21 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     state.monsterMaxHp = nextMonster.max_hp;
     state.currentMonsterHp = nextMonster.max_hp;
 
-    if (state.groupMonsterSprite) {
-      if (!scene.textures.exists(nextMonster.image_name)) {
-        console.warn("Missing next monster texture:", nextMonster.image_name);
-      }
+    if (!scene.textures.exists(nextMonster.image_name)) {
+      console.warn("Missing next monster texture:", nextMonster.image_name);
+    }
+
+    if (!state.groupMonsterSprite) {
+      state.groupMonsterSprite = scene.add
+        .image(980, 380, nextMonster.image_name)
+        .setOrigin(0.5)
+        .setScale(0.5);
+    } else {
+      scene.tweens.killTweensOf(state.groupMonsterSprite);
+      state.groupMonsterSprite.clearTint();
       state.groupMonsterSprite.setTexture(nextMonster.image_name);
+      state.groupMonsterSprite.setPosition(980, 380);
+      state.groupMonsterSprite.setScale(0.5);
     }
   }
 
@@ -176,8 +225,12 @@ export function createGroupEncounterController(scene, ui, sceneData) {
       ui.showAnswerFeedback(correctIndex, chosenIndex);
     }
 
+    const monsterHpBefore = state.currentMonsterHp;
+    const monsterHpAfter = payload.monsterHpAfter;
+    const monsterTookDamage = monsterHpAfter < monsterHpBefore;
+
     state.teamHp = payload.teamHpAfter;
-    state.currentMonsterHp = payload.monsterHpAfter;
+    state.currentMonsterHp = monsterHpAfter;
 
     ui.setHud({
       player: {
@@ -185,17 +238,28 @@ export function createGroupEncounterController(scene, ui, sceneData) {
         maxHp: state.teamHpMax ?? payload.teamHpAfter,
       },
       monster: {
-        hp: payload.monsterHpAfter,
-        maxHp: state.monsterMaxHp ?? payload.monsterHpAfter,
+        hp: monsterHpAfter,
+        maxHp: state.monsterMaxHp ?? monsterHpAfter,
       },
     });
 
     if (payload.isNextStage && payload.nextMonster) {
       swapMonster(payload.nextMonster);
     }
+
+    if (monsterTookDamage) {
+      playMonsterHitFx();
+    }
   }
 
   function onRoundStartedHandler(payload) {
+    if (state.isPlayingHitFx) {
+      scene.time.delayedCall(260, () => {
+        applyRoundStartedPayload(payload);
+      });
+      return;
+    }
+
     applyRoundStartedPayload(payload);
   }
 
@@ -225,6 +289,14 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     if (state.countdownEvent) {
       state.countdownEvent.remove(false);
       state.countdownEvent = null;
+    }
+
+    if (state.groupMonsterSprite) {
+      scene.tweens.killTweensOf(state.groupMonsterSprite);
+    }
+
+    if (state.playerSprite) {
+      scene.tweens.killTweensOf(state.playerSprite);
     }
   }
 

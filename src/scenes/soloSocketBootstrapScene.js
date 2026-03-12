@@ -93,6 +93,9 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
     onRoundStarted(this.handleRoundStarted);
 
     this.createSoloSocketRoom();
+    this.events.once("shutdown", () => {
+  this.shutdown();
+});
   }
 
   createSoloSocketRoom() {
