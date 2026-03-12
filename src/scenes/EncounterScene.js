@@ -1,13 +1,12 @@
 import Phaser from "phaser";
 import backgroundImg from "../assets/background.png";
-import { createEncounterUI } from "../game/ui/encounterUi";
-import { characters } from "../game/data/characterData";
-import { monsters } from "../game/data/monsterData";
-import { questions } from "../game/data/questionData";
-import battleController from "../game/battleController";
 import backgroundmp3 from "../assets/background.mp3";
-import createMuteToggle from "../game/ui/BackgroundMusicToggle";
 import mute from "../assets/mute.png";
+
+import { createEncounterUI } from "../game/ui/encounterUi";
+import createMuteToggle from "../game/ui/BackgroundMusicToggle";
+import { createGroupEncounterController } from "../game/controllers/groupEncounterController";
+
 
 export default class EncounterScene extends Phaser.Scene {
   constructor() {
@@ -15,21 +14,8 @@ export default class EncounterScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.selectedIndex = data?.selectedIndex ?? 0;
-    this.difficulty = data?.difficulty ?? "easy";
-    this.player = characters[this.selectedIndex];
-    this.monster = monsters[0];
-    this.playerStats = {
-      hp: this.player.base_sanity,
-      maxHp: this.player.base_sanity,
-    };
-    this.monsterStats = {
-      hp: this.monster.max_hp,
-      maxHp: this.monster.max_hp,
-    };
-    this.questionPool = questions.filter(
-      (question) => question.difficulty === this.difficulty,
-    );
+    this.sceneData = data ?? {};
+    this.mode = this.sceneData.mode ?? "solo";
   }
 
   preload() {
@@ -40,47 +26,23 @@ export default class EncounterScene extends Phaser.Scene {
 
   create() {
     this.createBackground();
-    this.createCharacters();
+    createMuteToggle(this, "backgroundmp3");
+
     this.ui = createEncounterUI(this, {
       width: this.scale.width,
       height: this.scale.height,
       onAnswer: (i) => {
-        console.log("clicked answer", i);
-        console.log("correct answer index", this.currentQuestion.correctIndex);
-        if (i === this.currentQuestion.correctIndex) {
-          const newHp = this.controller.applyMonsterDamage(
-            10,
-            false,
-            this.monsterStats.hp,
-            this.monsterStats.maxHp,
-          );
-          this.monsterStats.hp = newHp;
-        } else {
-          const newHp = this.controller.applyDamage(
-            10,
-            true,
-            this.playerStats.hp,
-            this.playerStats.maxHp,
-          );
-          this.playerStats.hp = newHp;
-          
-        }
-        this.ui.setHud({
-          player: this.playerStats,
-          monster: this.monsterStats,
-        });
+        this.controller?.handleAnswer(i);
       },
     });
 
-    this.controller = battleController(
-      this,
-      this.ui.playerHealthBar,
-      this.ui.monsterHealthBar,
-    );
+    if (this.mode === "group") {
+      this.controller = createGroupEncounterController(this, this.ui, this.sceneData);
+    } else {
+      this.controller = createSoloEncounterController(this, this.ui, this.sceneData);
+    }
 
-    this.ui.setHud({ player: this.playerStats, monster: this.monsterStats });
-    this.showQuestion();
-    this.ui.setTimer("");
+    this.controller.start();
   }
 
   createBackground() {
@@ -90,35 +52,11 @@ export default class EncounterScene extends Phaser.Scene {
     bg.setScale(Math.max(scaleX, scaleY));
   }
 
-  formatQuestion(question) {
-    return {
-      question_id: question.question_id,
-      prompt: question.prompt,
-      options: [
-        question.option_a,
-        question.option_b,
-        question.option_c,
-        question.option_d,
-      ],
-      correctIndex: ["a", "b", "c", "d"].indexOf(question.correct_option),
-    };
+  shutdown() {
+    this.controller?.shutdown?.();
   }
 
-  showQuestion() {
-    if (!this.questionPool.length) return;
-    const firstQuestion = this.questionPool[0];
-    this.currentQuestion = this.formatQuestion(firstQuestion);
-    this.ui.setQuestion(this.currentQuestion);
-  }
-
-  createCharacters() {
-    this.player = this.add
-      .image(250, 380, this.player.image_name)
-      .setOrigin(0.5)
-      .setScale(0.3);
-    this.monster = this.add
-      .image(980, 380, this.monster.image_name)
-      .setOrigin(0.5)
-      .setScale(0.5);
+  destroy() {
+    this.shutdown();
   }
 }

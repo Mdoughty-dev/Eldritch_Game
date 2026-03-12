@@ -1,8 +1,9 @@
-import Phaser from 'phaser';
-import background from '../assets/background.png';
-import backgroundmp3 from '../assets/background.mp3';
-import createMuteToggle from '../game/ui/BackgroundMusicToggle';
-import mute from '../assets/mute.png';
+import Phaser from "phaser";
+import background from "../assets/background.png";
+import backgroundmp3 from "../assets/background.mp3";
+import createMuteToggle from "../game/ui/BackgroundMusicToggle";
+
+import mute from "../assets/mute.png";
 
 // character images
 import denisImg from '../assets/Denis.png';
@@ -46,14 +47,15 @@ export default class HomePage extends Phaser.Scene {
 		this.createTeamButton();
 		createMuteToggle(this, 'backgroundmp3');
 
-		this.add
-			.text(this.scale.width / 2, 100, 'Forbidden Knowledge', {
-				fontSize: '64px',
-				fontFamily: 'Blackletter',
-				color: '#FFFFFF',
-			})
-			.setOrigin(0.5);
-	}
+    this.add
+      .text(this.scale.width / 2, 100, "Forbidden Knowledge", {
+        fontSize: "64px",
+        fontFamily: "Blackletter",
+        color: "#FFFFFF",
+      })
+      .setOrigin(0.5);
+
+  }
 
 	createBackground() {
 		const bg = this.add.image(0, 0, 'background').setOrigin(0);
@@ -80,17 +82,22 @@ export default class HomePage extends Phaser.Scene {
 		});
 	}
 
-	createTeamButton() {
-		const teamButton = this.add
-			.text(this.scale.width / 2, 500, 'Adventure Together', {
-				fontSize: '32px',
-				color: '#FFFFFF',
-				backgroundColor: '#494949',
-				fontFamily: 'Blackletter',
-			})
-			.setOrigin(0.5);
+  createTeamButton() {
+    const teamButton = this.add
+      .text(this.scale.width / 2, 500, "Adventure Together", {
+        fontSize: "32px",
+        color: "#FFFFFF",
+        backgroundColor: "#494949",
+        fontFamily: "Blackletter",
+      })
+      .setOrigin(0.5);
+    
 
-		teamButton.setInteractive({ useHandCursor: true });
-		teamButton.on('pointerdown', () => {});
-	}
+    teamButton.setInteractive({ useHandCursor: true });
+    teamButton.on("pointerdown", () =>{
+        console.log("group button is pressed");
+      this.scene.start("GroupLobbyScene");
+      })
+    
+  }
 }

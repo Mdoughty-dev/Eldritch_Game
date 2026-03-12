@@ -108,11 +108,9 @@ export default class CharacterSceneSolo extends Phaser.Scene {
     });
 
     submitButton.on("pointerdown", () => {
-      this.scene.start("EncounterScene", {
-        selectedIndex: counter,
-        mode: "solo",
-        difficulty: "easy",
-      });
+      this.scene.start("SoloSocketBootstrapScene", {
+  selectedIndex: counter,
+});
     });
   }
 }
