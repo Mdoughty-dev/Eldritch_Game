@@ -1,68 +1,8 @@
-export default function createHealthBar(
-  scene,
-  x,
-  y,
-  maxHealth = 1000,
-  damage = 100,
-  isPlayer = true,
-) {
-  const backgroundBar = scene.add
-    .rectangle(x, y, 205, 55, 0x000000)
-    .setOrigin(0.5);
-  const healthBar = scene.add.rectangle(x, y, 200, 50, 0xff0000).setOrigin(0.5);
-  const maxHealthBar = healthBar.width;
-  let remainingHealth = maxHealth;
-  let healthNum = scene.add
-    .text(x, y, `${remainingHealth}`, {
-      fontSize: "25px",
-    })
-    .setOrigin(0.5);
+export default function createHealthBar(scene, x, y, remainingHealth) {
+	const backgroundBar = scene.add
+		.rectangle(x, y, 255, 40, 0x000000)
+		.setOrigin(0.5);
+	const healthBar = scene.add.rectangle(x, y, 250, 35, 0xff0000).setOrigin(0.5);
 
-  const attackButton = scene.add
-    .text(x, y + 50, "Attack", {
-      fontSize: "32px",
-      color: "#FFFFFF",
-      backgroundColor: "#494949",
-      fontFamily: "Blackletter",
-    })
-    .setOrigin(0.5);
-
-  attackButton.setInteractive({ useHandCursor: true });
-  attackButton.on("pointerdown", () => {
-    if (remainingHealth <= 0) return;
-    if (remainingHealth - damage > 0) {
-      remainingHealth = remainingHealth - damage;
-      scene.tweens.add({
-        targets: healthBar,
-        width: (remainingHealth / maxHealth) * maxHealthBar,
-        duration: 500,
-        ease: "Sine.easeInOut",
-      });
-    } else if (remainingHealth - damage <= 0) {
-      remainingHealth = 0;
-      if (isPlayer) {
-        scene.time.addEvent({
-          delay: 1000,
-          callback: () => {
-            scene.scene.start("GameOver");
-          },
-        });
-      } else {
-        scene.time.addEvent({
-          delay: 1000,
-          callback: () => {
-            scene.scene.start("VictoryPage");
-          },
-        });
-      }
-      scene.tweens.add({
-        targets: healthBar,
-        width: 0,
-        duration: 500,
-        ease: "Sine.easeInOut",
-      });
-    }
-    healthNum.setText(`${remainingHealth}`);
-  });
-  return { backgroundBar, healthBar, attackButton, healthNum };
+	return { backgroundBar, healthBar };
 }
