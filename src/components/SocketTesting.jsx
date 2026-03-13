@@ -143,10 +143,10 @@ export default function SocketTesting() {
             value={characterId}
             onChange={(e) => setCharacterId(Number(e.target.value))}
           >
-            <option value={1}>The Scholar</option>
-            <option value={2}>The Investigator</option>
-            <option value={3}>The Occultist</option>
-            <option value={4}>The Veteran</option>
+            <option value={1}>Denis McCload</option>
+            <option value={2}>Greystaff</option>
+            <option value={3}>Patris Deathstare</option>
+            <option value={4}>Unknown</option>
           </select>
           <br />
           <br />
