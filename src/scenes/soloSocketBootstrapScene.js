@@ -72,18 +72,17 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
 
     this.handleRoundStarted = (payload) => {
       this.scene.start("EncounterScene", {
-        mode: "group",
-        roomCode: this.roomCode,
-        selectedIndex: this.selectedIndex,
-        roundStartedPayload: payload,
-        groupCharacter: character,
-        groupPlayers: [
-          {
-            userId: localStorage.getItem("eldritchUserId"),
-            name: localStorage.getItem("eldritchPlayerName") || "Solo Player",
-            character,
-          },
-        ],
+    mode: "group",
+    roomCode: this.roomCode,
+    selectedIndex: this.selectedIndex,
+    roundStartedPayload: payload,
+    groupPlayers: [
+      {
+        userId: localStorage.getItem("eldritchUserId"),
+        name: localStorage.getItem("eldritchPlayerName") || "Solo Player",
+        character,
+      },
+    ],
       });
     };
 

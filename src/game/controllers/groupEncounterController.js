@@ -8,14 +8,17 @@ import {
   offRoundStarted,
 } from "../net/groupApi";
 
+import { characters } from "../data/characterData";
+import { playMonsterHitFx } from "../monsterfx";
+
 export function createGroupEncounterController(scene, ui, sceneData) {
   const state = {
     roomCode: sceneData.roomCode ?? null,
     roundStartedPayload: sceneData.roundStartedPayload ?? null,
     countdownEvent: null,
     groupMonsterSprite: null,
-    playerSprite: null,
-    groupCharacter: sceneData.groupCharacter ?? null,
+    playerSprites: [],
+    groupPlayers: sceneData.groupPlayers ?? [],
     currentQuestionId: null,
     roundDeadline: null,
     teamHp: null,
@@ -24,38 +27,6 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     currentMonsterHp: null,
     isPlayingHitFx: false,
   };
-
-  function playMonsterHitFx() {
-    if (!state.groupMonsterSprite) return;
-
-    const monster = state.groupMonsterSprite;
-    const startX = monster.x;
-    const startY = monster.y;
-    const originalScaleX = monster.scaleX;
-    const originalScaleY = monster.scaleY;
-
-    state.isPlayingHitFx = true;
-
-    scene.tweens.killTweensOf(monster);
-
-    monster.clearTint();
-    monster.setTint(0xff4444);
-    monster.setScale(originalScaleX * 1.08, originalScaleY * 1.08);
-
-    scene.tweens.add({
-      targets: monster,
-      x: startX + 18,
-      duration: 45,
-      yoyo: true,
-      repeat: 4,
-      onComplete: () => {
-        monster.setPosition(startX, startY);
-        monster.clearTint();
-        monster.setScale(originalScaleX, originalScaleY);
-        state.isPlayingHitFx = false;
-      },
-    });
-  }
 
   function start() {
     if (!state.roundStartedPayload) {
@@ -66,7 +37,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
       return;
     }
 
-    createPlayerSprite();
+    createPlayerSprites();
     applyRoundStartedPayload(state.roundStartedPayload);
     registerListeners();
   }
@@ -84,25 +55,72 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     console.log("submitted group answer:", answer);
   }
 
-  function createPlayerSprite() {
-    if (!state.groupCharacter?.image_name) {
-      console.warn("No group character provided to EncounterScene");
+  //state.playerSprites = createPlayerSprites(scene, state.groupPlayers);
+  function createPlayerSprites() {
+    state.playerSprites.forEach((sprite) => {
+      scene.tweens.killTweensOf(sprite);
+      sprite.destroy();
+    });
+    state.playerSprites = [];
+
+    if (!state.groupPlayers.length) {
+      console.warn("No group players provided to EncounterScene");
       return;
     }
 
-    if (!scene.textures.exists(state.groupCharacter.image_name)) {
-      console.warn("Missing player texture:", state.groupCharacter.image_name);
-      return;
-    }
+    const positionsByCount = {
+      1: [{ x: 250, y: 380 }],
+      2: [
+        { x: 220, y: 330 },
+        { x: 300, y: 430 },
+      ],
+      3: [
+        { x: 210, y: 300 },
+        { x: 280, y: 380 },
+        { x: 350, y: 460 },
+      ],
+      4: [
+        { x: 190, y: 280 },
+        { x: 250, y: 360 },
+        { x: 320, y: 430 },
+        { x: 390, y: 500 },
+      ],
+    };
 
-    if (state.playerSprite) {
-      state.playerSprite.destroy();
-    }
+    const party = state.groupPlayers.slice(0, 4);
+    const positions = positionsByCount[party.length] ?? positionsByCount[1];
 
-    state.playerSprite = scene.add
-      .image(250, 380, state.groupCharacter.image_name)
-      .setOrigin(0.5)
-      .setScale(0.3);
+    party.forEach((player, index) => {
+      const mappedCharacter =
+        characters.find(
+          (c) =>
+            (c.character_id ?? c.id) ===
+            (player.character?.character_id ?? player.character?.id)
+        ) ?? player.character;
+
+      const imageName = mappedCharacter?.image_name;
+
+      console.log("rendering player:", player.name, mappedCharacter);
+
+      if (!imageName) {
+        console.warn("Player missing image_name:", player);
+        return;
+      }
+
+      if (!scene.textures.exists(imageName)) {
+        console.warn("Missing player texture:", imageName);
+        return;
+      }
+
+      const { x, y } = positions[index];
+
+      const sprite = scene.add
+        .image(x, y, imageName)
+        .setOrigin(0.5)
+        .setScale(0.3);
+
+      state.playerSprites.push(sprite);
+    });
   }
 
   function applyRoundStartedPayload(payload) {
@@ -248,7 +266,11 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     }
 
     if (monsterTookDamage) {
-      playMonsterHitFx();
+      state.isPlayingHitFx = true;
+
+      playMonsterHitFx(scene, state.groupMonsterSprite, () => {
+        state.isPlayingHitFx = false;
+      });
     }
   }
 
@@ -295,9 +317,11 @@ export function createGroupEncounterController(scene, ui, sceneData) {
       scene.tweens.killTweensOf(state.groupMonsterSprite);
     }
 
-    if (state.playerSprite) {
-      scene.tweens.killTweensOf(state.playerSprite);
-    }
+    state.playerSprites.forEach((sprite) => {
+      scene.tweens.killTweensOf(sprite);
+      sprite.destroy();
+    });
+    state.playerSprites = [];
   }
 
   return {
