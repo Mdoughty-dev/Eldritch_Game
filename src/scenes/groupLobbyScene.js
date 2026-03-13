@@ -122,16 +122,45 @@ export default class GroupLobbyScene extends Phaser.Scene {
     };
 
     this.handleRoundStarted = (payload) => {
-      const currentCharacter = characters[this.selectedIndex];
+  const groupPlayers = (this.lobbyState?.players ?? []).map((player) => ({
+    userId: player.userId,
+    name: player.name,
+    character: player.character,
+  }));
 
-      this.scene.start("EncounterScene", {
-        mode: "group",
-        roomCode: this.roomCode,
-        selectedIndex: this.selectedIndex,
-        roundStartedPayload: payload,
-        groupCharacter: currentCharacter,
-      });
+  this.scene.start("EncounterScene", {
+    mode: "group",
+    roomCode: this.roomCode,
+    selectedIndex: this.selectedIndex,
+    roundStartedPayload: payload,
+    groupPlayers,
+  });
+};
+
+this.handleRoundStarted = (payload) => {
+  const groupPlayers = (this.lobbyState?.players ?? []).map((player) => {
+    const frontendCharacter =
+      characters.find((c) =>
+        (c.character_id ?? c.id) === (player.character?.character_id ?? player.character?.id)
+      ) ?? player.character;
+
+    return {
+      userId: player.userId,
+      name: player.name,
+      character: frontendCharacter,
     };
+  });
+
+  console.log("groupPlayers passed to EncounterScene:", groupPlayers);
+
+  this.scene.start("EncounterScene", {
+    mode: "group",
+    roomCode: this.roomCode,
+    selectedIndex: this.selectedIndex,
+    roundStartedPayload: payload,
+    groupPlayers,
+  });
+};
 
     this.events.once("shutdown", () => {
       this.shutdown();

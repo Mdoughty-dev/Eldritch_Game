@@ -10,14 +10,17 @@ import {
 	offRoundStarted,
 } from '../net/groupApi';
 
+import { createPlayerSprites } from "../ui/characterLoadingUI";
+import { playMonsterHitFx } from "../monsterfx";
+
 export function createGroupEncounterController(scene, ui, sceneData) {
   const state = {
     roomCode: sceneData.roomCode ?? null,
     roundStartedPayload: sceneData.roundStartedPayload ?? null,
     countdownEvent: null,
     groupMonsterSprite: null,
-    playerSprite: null,
-    groupCharacter: sceneData.groupCharacter ?? null,
+    playerSprites: [],
+    groupPlayers: sceneData.groupPlayers ?? [],
     currentQuestionId: null,
     roundDeadline: null,
     teamHp: null,
@@ -28,38 +31,6 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     battle: null,
   };
 
-  function playMonsterHitFx() {
-    if (!state.groupMonsterSprite) return;
-
-    const monster = state.groupMonsterSprite;
-    const startX = monster.x;
-    const startY = monster.y;
-    const originalScaleX = monster.scaleX;
-    const originalScaleY = monster.scaleY;
-
-    state.isPlayingHitFx = true;
-
-    scene.tweens.killTweensOf(monster);
-
-    monster.clearTint();
-    monster.setTint(0xff4444);
-    monster.setScale(originalScaleX * 1.08, originalScaleY * 1.08);
-
-    scene.tweens.add({
-      targets: monster,
-      x: startX + 18,
-      duration: 45,
-      yoyo: true,
-      repeat: 4,
-      onComplete: () => {
-        monster.setPosition(startX, startY);
-        monster.clearTint();
-        monster.setScale(originalScaleX, originalScaleY);
-        state.isPlayingHitFx = false;
-      },
-    });
-  }
-
   function start() {
     if (!state.roundStartedPayload) {
       console.error("Missing roundStartedPayload for group mode");
@@ -69,7 +40,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
       return;
     }
 
-    createPlayerSprite();
+    state.playerSprites = createPlayerSprites(scene, state.groupPlayers);
     applyRoundStartedPayload(state.roundStartedPayload);
     registerListeners();
     state.battle = battleController(
@@ -92,34 +63,18 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     console.log("submitted group answer:", answer);
   }
 
-  function createPlayerSprite() {
-    if (!state.groupCharacter?.image_name) {
-      console.warn("No group character provided to EncounterScene");
-      return;
-    }
-
-    if (!scene.textures.exists(state.groupCharacter.image_name)) {
-      console.warn("Missing player texture:", state.groupCharacter.image_name);
-      return;
-    }
-
-    if (state.playerSprite) {
-      state.playerSprite.destroy();
-    }
-
-    state.playerSprite = scene.add
-      .image(250, 380, state.groupCharacter.image_name)
-      .setOrigin(0.5)
-      .setScale(0.3);
-  }
-
   function applyRoundStartedPayload(payload) {
     const { monster, question, gameState } = payload;
+
+    if (!monster || !question || !gameState) {
+      console.error("Invalid roundStartedPayload:", payload);
+      return;
+    }
 
     state.currentQuestionId = question.id;
     state.roundDeadline = gameState.roundDeadline;
     state.teamHp = gameState.teamHp;
-    state.teamHpMax ??= gameState.teamHp;
+    state.teamHpMax ??= gameState.maxTeamHp ?? gameState.teamHp;
     state.monsterMaxHp = monster.maxHp;
     state.currentMonsterHp = monster.hp;
 
@@ -281,7 +236,11 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     }
 
     if (monsterTookDamage) {
-      playMonsterHitFx();
+      state.isPlayingHitFx = true;
+
+      playMonsterHitFx(scene, state.groupMonsterSprite, () => {
+        state.isPlayingHitFx = false;
+      });
     }
   }
 
@@ -326,11 +285,15 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
     if (state.groupMonsterSprite) {
       scene.tweens.killTweensOf(state.groupMonsterSprite);
+      state.groupMonsterSprite.destroy();
+      state.groupMonsterSprite = null;
     }
 
-    if (state.playerSprite) {
-      scene.tweens.killTweensOf(state.playerSprite);
-    }
+    state.playerSprites.forEach((sprite) => {
+      scene.tweens.killTweensOf(sprite);
+      sprite.destroy();
+    });
+    state.playerSprites = [];
   }
 
   return {
