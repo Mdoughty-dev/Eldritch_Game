@@ -1,5 +1,6 @@
 import battleController from "../battleController";
 import applyDamage from "../battleLogic";
+import { playerFx } from "../playerFx";
 import {
   submitAnswer,
   onRoundResult,
@@ -214,6 +215,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     const monsterHpBefore = state.currentMonsterHp;
     const monsterHpAfter = payload.monsterHpAfter;
     const monsterTookDamage = monsterHpAfter < monsterHpBefore;
+    const playerTookDamage = state.teamHp > payload.teamHpAfter;
 
     state.teamHp = payload.teamHpAfter;
     state.currentMonsterHp = monsterHpAfter;
@@ -235,6 +237,14 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     }
 
     if (monsterTookDamage) {
+      state.isPlayingHitFx = true;
+
+      playMonsterHitFx(scene, state.groupMonsterSprite, () => {
+        state.isPlayingHitFx = false;
+      });
+    }
+
+    if (playerTookDamage) {
       state.isPlayingHitFx = true;
 
       playMonsterHitFx(scene, state.groupMonsterSprite, () => {
