@@ -1,14 +1,14 @@
 import battleController from "../battleController";
 import applyDamage from "../battleLogic";
 import {
-  submitAnswer,
-  onRoundResult,
-  offRoundResult,
-  onGameEnded,
-  offGameEnded,
-  onRoundStarted,
-  offRoundStarted,
-} from "../net/groupApi";
+	submitAnswer,
+	onRoundResult,
+	offRoundResult,
+	onGameEnded,
+	offGameEnded,
+	onRoundStarted,
+	offRoundStarted,
+} from '../net/groupApi';
 
 export function createGroupEncounterController(scene, ui, sceneData) {
   const state = {
@@ -196,7 +196,13 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
   function swapMonster(nextMonster) {
     state.monsterMaxHp = nextMonster.max_hp;
-    state.currentMonsterHp = nextMonster.max_hp;
+    state.currentMonsterHp = nextMonster.max_hp;if (remaining <= 0) {
+			scene.time.addEvent({
+				delay: 1000,
+				callback: () =>
+					scene.scene.start(isPlayer ? 'GameOver' : 'VictoryPage'),
+			});
+		}
 
     if (!scene.textures.exists(nextMonster.image_name)) {
       console.warn("Missing next monster texture:", nextMonster.image_name);
