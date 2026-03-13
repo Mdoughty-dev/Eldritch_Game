@@ -1,3 +1,5 @@
+import battleController from "../battleController";
+import applyDamage from "../battleLogic";
 import {
   submitAnswer,
   onRoundResult,
@@ -23,6 +25,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     monsterMaxHp: null,
     currentMonsterHp: null,
     isPlayingHitFx: false,
+    battle: null,
   };
 
   function playMonsterHitFx() {
@@ -69,6 +72,11 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     createPlayerSprite();
     applyRoundStartedPayload(state.roundStartedPayload);
     registerListeners();
+    state.battle = battleController(
+      scene,
+      ui.playerHealthBar,
+      ui.monsterHealthBar,
+    );
   }
 
   function handleAnswer(index) {
@@ -214,7 +222,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     let chosenIndex = -1;
     const myUserId = localStorage.getItem("eldritchUserId");
     const myResult = payload.playerResults?.find(
-      (player) => player.userId === myUserId
+      (player) => player.userId === myUserId,
     );
 
     if (myResult?.answer) {
@@ -223,6 +231,25 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
     if (correctIndex !== -1) {
       ui.showAnswerFeedback(correctIndex, chosenIndex);
+    }
+    const playerDamage = state.teamHp - payload.teamHpAfter;
+    const monsterDamage = state.currentMonsterHp - payload.monsterHpAfter;
+
+    if (state.teamHp > payload.teamHpAfter) {
+      state.battle.applyDamage(
+        playerDamage,
+        true,
+        state.teamHp,
+        state.teamHpMax,
+      );
+    }
+    if (state.currentMonsterHp > payload.monsterHpAfter) {
+      state.battle.applyMonsterDamage(
+        monsterDamage,
+        false,
+        state.currentMonsterHp,
+        state.monsterMaxHp,
+      );
     }
 
     const monsterHpBefore = state.currentMonsterHp;
@@ -266,8 +293,8 @@ export function createGroupEncounterController(scene, ui, sceneData) {
   function onGameEndedHandler(payload) {
     let message = "Game Over";
 
-    if (payload.result === "victory") message = "Victory!";
-    else if (payload.result === "defeat") message = "Defeat!";
+    if (payload.result === "victory") scene.scene.start('Victory');
+    else if (payload.result === "defeat") scene.scene.start('GameOver');
     else if (payload.result === "abandoned") message = "Abandoned";
 
     ui.showEndOverlay(message, () => {
