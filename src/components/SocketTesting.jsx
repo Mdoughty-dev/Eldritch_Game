@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-// Connect to backend
 const socket = io("http://localhost:3000");
 
 export default function SocketTesting() {
@@ -12,10 +11,14 @@ export default function SocketTesting() {
   const [characterId, setCharacterId] = useState(1);
   const [roomCode, setRoomCode] = useState("");
   const [players, setPlayers] = useState([]);
+  const [hostUserId, setHostUserId] = useState(null);
   const [gameData, setGameData] = useState(null);
   const [lastRoundResult, setLastRoundResult] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [hasAnswered, setHasAnswered] = useState(false);
+  const [waitingForReady, setWaitingForReady] = useState(false);
+
+  const isHost = userId === hostUserId;
 
   useEffect(() => {
     socket.on("connect", () => console.log("Connected:", socket.id));
@@ -23,18 +26,21 @@ export default function SocketTesting() {
     socket.on("lobbyUpdated", (payload) => {
       setRoomCode(payload.roomCode);
       setPlayers(payload.players);
+      setHostUserId(payload.hostUserId);
       setStep("lobby");
     });
 
     socket.on("roundStarted", (payload) => {
       setGameData(payload);
-      setLastRoundResult(null); // Clear previous result when new round starts
+      setLastRoundResult(null);
       setHasAnswered(false);
+      setWaitingForReady(false);
       setStep("in-game");
     });
 
     socket.on("roundResult", (payload) => {
       setLastRoundResult(payload);
+      setWaitingForReady(true);
       console.log("Round result received:", payload);
     });
 
@@ -59,14 +65,12 @@ export default function SocketTesting() {
     };
   }, []);
 
-  // AUTO-START SOLO
   useEffect(() => {
     if (step === "lobby" && mode === "solo") {
       socket.emit("startGame");
     }
   }, [step, mode]);
 
-  // TIMER LOGIC
   useEffect(() => {
     const deadline = gameData?.gameState?.roundDeadline;
     if (!deadline) return;
@@ -75,7 +79,6 @@ export default function SocketTesting() {
       const msRemaining = deadline - Date.now();
       const secondsRemaining = Math.max(0, Math.floor(msRemaining / 1000));
       setTimeLeft(secondsRemaining);
-
       if (secondsRemaining <= 0) clearInterval(timerId);
     }, 100);
 
@@ -109,6 +112,11 @@ export default function SocketTesting() {
       questionId: gameData.question.id,
       answer: key,
     });
+  }
+
+  function sendClientReady() {
+    socket.emit("clientReadyForNextRound");
+    setWaitingForReady(false);
   }
 
   return (
@@ -150,7 +158,6 @@ export default function SocketTesting() {
           </select>
           <br />
           <br />
-
           {mode === "solo" ? (
             <form onSubmit={handleStartSolo}>
               <input
@@ -217,22 +224,33 @@ export default function SocketTesting() {
           <h1>Battle Phase</h1>
           <h3>
             Team HP: {gameData.gameState.teamHp} /{" "}
-            {gameData.gameState.maxTeamHp}| Monster HP: {gameData.monster.hp} /{" "}
+            {gameData.gameState.maxTeamHp} | Monster HP: {gameData.monster.hp} /{" "}
             {gameData.monster.maxHp}
           </h3>
           <p>
             Time Left: {timeLeft}s | Round: {gameData.gameState.roundNumber}
           </p>
 
-          {/* SHOW RESULT IF AVAILABLE */}
           {lastRoundResult && (
             <div
               style={{ background: "#222", padding: "10px", margin: "10px 0" }}
             >
-              <h4>Last Round Result:</h4>
+              <h4>
+                Last Round Result:{" "}
+                {lastRoundResult.isNextStage ? "🐉 NEW MONSTER" : ""}
+              </h4>
               <p>Correct Option: {lastRoundResult.correctOption}</p>
               <p>Team Damage Taken: {lastRoundResult.teamDamageTaken}</p>
               <p>Monster Damage Taken: {lastRoundResult.monsterDamageTaken}</p>
+
+              {waitingForReady && isHost && (
+                <button onClick={sendClientReady} style={{ marginTop: "8px" }}>
+                  [HOST] Send clientReadyForNextRound
+                </button>
+              )}
+              {waitingForReady && !isHost && (
+                <p>Waiting for host to trigger next round...</p>
+              )}
             </div>
           )}
 
@@ -264,9 +282,14 @@ export default function SocketTesting() {
           {JSON.stringify(
             {
               step,
+              userId,
+              hostUserId,
+              isHost,
               roomCode,
+              waitingForReady,
               gameData: gameData ? "Present" : "None",
               lastRoundResult: !!lastRoundResult,
+              isNextStage: lastRoundResult?.isNextStage ?? false,
             },
             null,
             2
