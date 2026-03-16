@@ -85,14 +85,14 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
 		if (!state.groupMonsterSprite) {
 			state.groupMonsterSprite = scene.add
-				.image(980, 380, monster.image_name)
+				.image(980, 340, monster.image_name)
 				.setOrigin(0.5)
 				.setScale(0.5);
 		} else {
 			scene.tweens.killTweensOf(state.groupMonsterSprite);
 			state.groupMonsterSprite.clearTint();
 			state.groupMonsterSprite.setTexture(monster.image_name);
-			state.groupMonsterSprite.setPosition(980, 380);
+			state.groupMonsterSprite.setPosition(980, 340);
 			state.groupMonsterSprite.setScale(0.5);
 		}
 
@@ -164,14 +164,14 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
 		if (!state.groupMonsterSprite) {
 			state.groupMonsterSprite = scene.add
-				.image(980, 380, nextMonster.image_name)
+				.image(980, 340, nextMonster.image_name)
 				.setOrigin(0.5)
 				.setScale(0.5);
 		} else {
 			scene.tweens.killTweensOf(state.groupMonsterSprite);
 			state.groupMonsterSprite.clearTint();
 			state.groupMonsterSprite.setTexture(nextMonster.image_name);
-			state.groupMonsterSprite.setPosition(980, 380);
+			state.groupMonsterSprite.setPosition(980, 340);
 			state.groupMonsterSprite.setScale(0.5);
 		}
 	}
