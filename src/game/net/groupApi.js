@@ -70,3 +70,7 @@ export function offGameEnded(handler) {
 export function leaveRoom(payload) {
   getSocket().emit("leaveRoom", payload);
 }
+
+export function loginUser(loginData) {
+  getSocket().emit("login", loginData);
+}
