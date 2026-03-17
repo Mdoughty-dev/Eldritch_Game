@@ -45,6 +45,7 @@ export function createEncounterUI(scene, opts = {}) {
 
   ui.answerButtons = [];
   ui.bgButtons = [];
+  ui.activeButtons = [];
 
   const answerStartY = panelTop + 120;
   const answerGap = 65;
@@ -99,7 +100,7 @@ export function createEncounterUI(scene, opts = {}) {
 
     ui.answerButtons.push(btn);
     ui.bgButtons.push(buttonBg);
-    console.log(ui.bgButtons, "<-- ui pg button");
+    ui.activeButtons.push(activeButton);
   }
 
   ui.lockAnswers = () => {
@@ -122,8 +123,17 @@ export function createEncounterUI(scene, opts = {}) {
         btn.input.enabled = true;
       }
     });
+
+    ui.activeButtons.forEach((activeButton) => {
+      activeButton.setDepth(0);
+    });
+
     ui.bgButtons.forEach((buttonBg) => {
-      buttonBg.setInteractive({ useHandCursor: true });
+      if (!buttonBg.input) {
+        buttonBg.setInteractive({ useHandCursor: true });
+      } else {
+        buttonBg.input.enabled = true;
+      }
     });
   };
 
