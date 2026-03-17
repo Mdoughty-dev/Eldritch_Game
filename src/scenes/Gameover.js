@@ -3,6 +3,9 @@ import background from '../assets/background.png';
 import gameOverImg from '../assets/gameOver.png';
 import buttonBg from '../assets/buttonNormal.png';
 import activeButton from '../assets/buttonhighlight.png';
+import mute from '../assets/mute.png';
+import createMuteToggle from '../game/ui/BackgroundMusicToggle';
+import gameOverMusic from '../assets/gameOver.mp3';
 
 export default class GameOver extends Phaser.Scene {
 	constructor() {
@@ -14,10 +17,13 @@ export default class GameOver extends Phaser.Scene {
 		this.load.image('gameOverImg', gameOverImg);
 		this.load.image('buttonBg', buttonBg);
 		this.load.image('activeButton', activeButton);
+		this.load.audio('gameOverMusic', gameOverMusic);
+		this.load.image('mute', mute);
 	}
 
 	create() {
 		this.createBackground();
+		createMuteToggle(this, 'gameOverMusic');
 
 		const gameOverImg = this.add
 			.image(this.scale.width / 2, this.scale.height / 2, 'gameOverImg')
@@ -31,7 +37,8 @@ export default class GameOver extends Phaser.Scene {
 				fontFamily: 'Blackletter',
 				color: '#FFFFFF',
 			})
-			.setOrigin(0.5);
+			.setOrigin(0.5)
+			.setDepth(4);
 
 		this.createContinueButton();
 	}
@@ -68,6 +75,7 @@ export default class GameOver extends Phaser.Scene {
 		buttonBg.setInteractive({ useHandCursor: true });
 		buttonBg
 			.on('pointerdown', () => {
+				this.sound.stopAll();
 				this.scene.start('ComingSoon');
 			})
 			.on('pointerover', () => activeButton.setDepth(3))
