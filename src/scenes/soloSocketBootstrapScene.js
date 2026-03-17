@@ -3,6 +3,7 @@ import { characters } from "../game/data/characterData";
 import {
   joinRoom,
   startGame,
+  requestLobby,
   onLobbyUpdated,
   onJoinError,
   onStartError,
@@ -22,6 +23,8 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
     this.selectedIndex = data?.selectedIndex ?? 0;
     this.roomCode = null;
     this.hasStartedGame = false;
+    this.hasResolvedLobbyCheck = false;
+    this.fallbackCreateEvent = null;
   }
 
   create() {
@@ -46,17 +49,39 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
       .setScale(0.35);
 
     this.statusText = this.add
-      .text(this.scale.width / 2, 600, "Creating private room...", {
+      .text(this.scale.width / 2, 600, "Checking existing room...", {
         fontSize: "28px",
         color: "#d8d8ff",
       })
       .setOrigin(0.5);
 
     this.handleLobbyUpdated = (payload) => {
-      this.roomCode = payload.roomCode;
-      this.statusText.setText(`Room created: ${this.roomCode}. Starting game...`);
+      const myUserId = localStorage.getItem("eldritchUserId");
+      const me = payload.players?.find((player) => player.userId === myUserId);
 
-      if (!this.hasStartedGame) {
+      if (!me) return;
+
+      if (this.fallbackCreateEvent) {
+        this.fallbackCreateEvent.remove(false);
+        this.fallbackCreateEvent = null;
+      }
+
+      this.hasResolvedLobbyCheck = true;
+      this.roomCode = payload.roomCode;
+
+      const matchedIndex = characters.findIndex(
+        (c) =>
+          (c.character_id ?? c.id) ===
+          (me.character?.character_id ?? me.character?.id)
+      );
+
+      if (matchedIndex !== -1) {
+        this.selectedIndex = matchedIndex;
+      }
+
+      this.statusText.setText(`Room ready: ${this.roomCode}. Starting game...`);
+
+      if (!this.hasStartedGame && payload.roomStatus === "lobby") {
         this.hasStartedGame = true;
         startGame();
       }
@@ -71,18 +96,20 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
     };
 
     this.handleRoundStarted = (payload) => {
+      const currentCharacter = characters[this.selectedIndex];
+
       this.scene.start("EncounterScene", {
-    mode: "group",
-    roomCode: this.roomCode,
-    selectedIndex: this.selectedIndex,
-    roundStartedPayload: payload,
-    groupPlayers: [
-      {
-        userId: localStorage.getItem("eldritchUserId"),
-        name: localStorage.getItem("eldritchPlayerName") || "Solo Player",
-        character,
-      },
-    ],
+        mode: "group",
+        roomCode: this.roomCode,
+        selectedIndex: this.selectedIndex,
+        roundStartedPayload: payload,
+        groupPlayers: [
+          {
+            userId: localStorage.getItem("eldritchUserId"),
+            name: localStorage.getItem("eldritchPlayerName") || "Solo Player",
+            character: currentCharacter,
+          },
+        ],
       });
     };
 
@@ -91,10 +118,34 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
     onStartError(this.handleStartError);
     onRoundStarted(this.handleRoundStarted);
 
-    this.createSoloSocketRoom();
+    this.checkExistingLobbyOrCreateRoom();
+
     this.events.once("shutdown", () => {
-  this.shutdown();
-});
+      this.shutdown();
+    });
+  }
+
+  checkExistingLobbyOrCreateRoom() {
+    let userId = localStorage.getItem("eldritchUserId");
+    if (!userId) {
+      userId = crypto.randomUUID();
+      localStorage.setItem("eldritchUserId", userId);
+    }
+
+    let playerName = localStorage.getItem("eldritchPlayerName");
+    if (!playerName) {
+      playerName = "Solo Player";
+      localStorage.setItem("eldritchPlayerName", playerName);
+    }
+
+    requestLobby();
+
+    this.fallbackCreateEvent = this.time.delayedCall(700, () => {
+      if (this.hasResolvedLobbyCheck) return;
+
+      this.statusText.setText("Creating private room...");
+      this.createSoloSocketRoom();
+    });
   }
 
   createSoloSocketRoom() {
@@ -122,6 +173,11 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
   }
 
   shutdown() {
+    if (this.fallbackCreateEvent) {
+      this.fallbackCreateEvent.remove(false);
+      this.fallbackCreateEvent = null;
+    }
+
     if (this.handleLobbyUpdated) offLobbyUpdated(this.handleLobbyUpdated);
     if (this.handleJoinError) offJoinError(this.handleJoinError);
     if (this.handleStartError) offStartError(this.handleStartError);
