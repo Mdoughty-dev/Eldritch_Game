@@ -3,7 +3,7 @@ import characterSceneSolo from '../scenes/characterSceneSolo';
 import HomePage from '../scenes/HomePage';
 import ComingSoon from '../scenes/ComingSoon';
 import EncounterScene from '../scenes/EncounterScene';
-import VictoryPage from '../scenes/Victory';
+import Victory from '../scenes/Victory';
 import GameOver from '../scenes/Gameover';
 import GroupLobbyScene from '../scenes/groupLobbyScene';
 import SoloSocketBootstrapScene from '../scenes/soloSocketBootstrapScene';
@@ -23,7 +23,7 @@ export function createPhaserGame(parentId) {
 			SoloSocketBootstrapScene,
 			GroupLobbyScene,
 			EncounterScene,
-			VictoryPage,
+			Victory,
 			GameOver,
 			ComingSoon,
 		],

@@ -136,6 +136,7 @@ export default class HomePage extends Phaser.Scene {
 		buttonBgTeam.setInteractive({ useHandCursor: true });
 		buttonBgTeam.on('pointerdown', () => {
 			console.log('group button is pressed');
+			this.sound.stopAll();
 			this.scene.start('GroupLobbyScene');
 		});
 	}

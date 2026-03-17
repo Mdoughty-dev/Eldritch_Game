@@ -7,9 +7,9 @@ import mute from '../assets/mute.png';
 import victoryMusic from '../assets/victory.mp3';
 import createMuteToggle from '../game/ui/BackgroundMusicToggle';
 
-export default class VictoryPage extends Phaser.Scene {
+export default class Victory extends Phaser.Scene {
 	constructor() {
-		super('VictoryPage');
+		super('Victory');
 	}
 
 	preload() {
