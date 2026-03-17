@@ -64,9 +64,18 @@ export function offRoundResult(handler) {
   getSocket().off("roundResult", handler);
 }
 
+export function requestCurrentLobby(handler)
+{
+  getSocket().off("requestCurrentLobby", handler);
+}
+
 export function offGameEnded(handler) {
   getSocket().off("gameEnded", handler);
 }
-export function leaveRoom(payload) {
-  getSocket().emit("leaveRoom", payload);
+export function leaveRoom() {
+  getSocket().emit("leaveRoom");
+}
+
+export function requestLobby() {
+  getSocket().emit("requestLobby");
 }

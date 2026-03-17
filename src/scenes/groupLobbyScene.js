@@ -5,6 +5,7 @@ import * as groupApi from "../game/net/groupApi";
 const {
   joinRoom,
   startGame,
+  requestLobby,
   onLobbyUpdated,
   onJoinError,
   onStartError,
@@ -105,14 +106,11 @@ export default class GroupLobbyScene extends Phaser.Scene {
       this.characterConfirmed = true;
     }
 
-    this.applyCharacterLockState();
-
     if (this.lobbyState) {
       this.renderLobbyState(this.lobbyState);
-      this.statusText.setText("Rejoined existing lobby");
-    } else if (this.roomCode) {
-      this.statusText.setText(`Room remembered: ${this.roomCode}`);
     }
+
+    this.applyCharacterLockState();
 
     this.handleLobbyUpdated = (payload) => {
       this.lobbyState = payload;
@@ -167,6 +165,8 @@ export default class GroupLobbyScene extends Phaser.Scene {
     onJoinError(this.handleJoinError);
     onStartError(this.handleStartError);
     onRoundStarted(this.handleRoundStarted);
+
+    requestLobby();
   }
 
   createButtons() {
@@ -233,7 +233,7 @@ export default class GroupLobbyScene extends Phaser.Scene {
     });
 
     this.leaveRoomButton.on("pointerdown", () => {
-      this.leaveRoom();
+      this.handleLeaveRoom();
     });
 
     this.startButton.on("pointerdown", () => {
@@ -247,19 +247,15 @@ export default class GroupLobbyScene extends Phaser.Scene {
       this.characterConfirmed || !!this.roomCode || !!this.lobbyState;
 
     this.setNameButton.setVisible(!shouldHideCharacterControls);
-    if (shouldHideCharacterControls) {
-      this.setNameButton.disableInteractive();
-    } else {
-      this.setNameButton.setInteractive({ useHandCursor: true });
-    }
-
     this.prevCharacterButton.setVisible(!shouldHideCharacterControls);
     this.nextCharacterButton.setVisible(!shouldHideCharacterControls);
 
     if (shouldHideCharacterControls) {
+      this.setNameButton.disableInteractive();
       this.prevCharacterButton.disableInteractive();
       this.nextCharacterButton.disableInteractive();
     } else {
+      this.setNameButton.setInteractive({ useHandCursor: true });
       this.prevCharacterButton.setInteractive({ useHandCursor: true });
       this.nextCharacterButton.setInteractive({ useHandCursor: true });
     }
@@ -300,22 +296,15 @@ export default class GroupLobbyScene extends Phaser.Scene {
     }
   }
 
-  leaveRoom() {
-    const userId = localStorage.getItem("eldritchUserId");
-
-    if (typeof groupApi.leaveRoom === "function") {
-      groupApi.leaveRoom({
-        roomCode: this.roomCode,
-        userId,
-      });
+  handleLeaveRoom() {
+    if (groupApi.leaveRoom) {
+      groupApi.leaveRoom();
     }
 
     this.lobbyState = null;
     this.roomCode = "";
-    this.playerName = "";
     this.characterConfirmed = false;
 
-    this.nameText.setText("Name: Not set");
     this.roomCodeText.setText("Room Code: None");
     this.playersText.setText("No room joined yet");
     this.statusText.setText("Left room");
@@ -494,13 +483,8 @@ export default class GroupLobbyScene extends Phaser.Scene {
     });
 
     inputEl.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        handleSubmit();
-      }
-
-      if (event.key === "Escape") {
-        closeModal();
-      }
+      if (event.key === "Enter") handleSubmit();
+      if (event.key === "Escape") closeModal();
     });
 
     saveButton.on("pointerdown", () => {
