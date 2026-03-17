@@ -79,3 +79,7 @@ export function leaveRoom() {
 export function requestLobby() {
   getSocket().emit("requestLobby");
 }
+
+export function clientReady() {
+	getSocket().emit('clientReadyForNextRound');
+}

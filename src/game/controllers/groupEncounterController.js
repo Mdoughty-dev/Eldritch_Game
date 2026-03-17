@@ -3,6 +3,7 @@ import applyDamage from '../battleLogic';
 import { playerFx } from '../playerFx';
 import {
 	submitAnswer,
+	clientReady,
 	onRoundResult,
 	offRoundResult,
 	onGameEnded,
@@ -30,6 +31,10 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 		currentMonsterHp: null,
 		isPlayingHitFx: false,
 		battle: null,
+		pendingRoundStartedPayload: null,
+		pendingFxCount: 0,
+		readyDelayDone: false,
+		readyDelayEvent: null,
 	};
 
 	function start() {
@@ -176,6 +181,23 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 		}
 	}
 
+	function maybeFinishRoundFlow() {
+		if (!state.readyDelayDone) return;
+		if (state.pendingFxCount > 0) return;
+
+		state.isPlayingHitFx = false;
+
+		if (state.pendingRoundStartedPayload) {
+			const nextPayload = state.pendingRoundStartedPayload;
+			state.pendingRoundStartedPayload = null;
+			applyRoundStartedPayload(nextPayload);
+			return;
+		}
+
+		console.log('sending clientReady');
+		clientReady();
+	}
+
 	function onRoundResultHandler(payload) {
 		const correctIndex = ['a', 'b', 'c', 'd'].indexOf(payload.correctOption);
 
@@ -192,6 +214,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 		if (correctIndex !== -1) {
 			ui.showAnswerFeedback(correctIndex, chosenIndex);
 		}
+
 		const playerDamage = state.teamHp - payload.teamHpAfter;
 		const monsterDamage = state.currentMonsterHp - payload.monsterHpAfter;
 
@@ -236,16 +259,32 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 			swapMonster(payload.nextMonster);
 		}
 
+		state.isPlayingHitFx = true;
+		state.pendingFxCount = 0;
+		state.readyDelayDone = false;
+
+		if (state.readyDelayEvent) {
+			state.readyDelayEvent.remove(false);
+			state.readyDelayEvent = null;
+		}
+
+		state.readyDelayEvent = scene.time.delayedCall(900, () => {
+			state.readyDelayDone = true;
+			state.readyDelayEvent = null;
+			maybeFinishRoundFlow();
+		});
+
 		if (monsterTookDamage) {
-			state.isPlayingHitFx = true;
+			state.pendingFxCount += 1;
 
 			playMonsterHitFx(scene, state.groupMonsterSprite, monsterDamage, () => {
-				state.isPlayingHitFx = false;
+				state.pendingFxCount -= 1;
+				maybeFinishRoundFlow();
 			});
 		}
 
 		if (playerTookDamage) {
-			state.isPlayingHitFx = true;
+			state.pendingFxCount += 1;
 
 			playerFx(
 				scene,
@@ -253,17 +292,20 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 				state.groupMonsterSprite,
 				playerDamage,
 				() => {
-					state.isPlayingHitFx = false;
+					state.pendingFxCount -= 1;
+					maybeFinishRoundFlow();
 				},
 			);
+		}
+
+		if (!monsterTookDamage && !playerTookDamage) {
+			maybeFinishRoundFlow();
 		}
 	}
 
 	function onRoundStartedHandler(payload) {
 		if (state.isPlayingHitFx) {
-			scene.time.delayedCall(260, () => {
-				applyRoundStartedPayload(payload);
-			});
+			state.pendingRoundStartedPayload = payload;
 			return;
 		}
 
@@ -297,6 +339,11 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 		if (state.countdownEvent) {
 			state.countdownEvent.remove(false);
 			state.countdownEvent = null;
+		}
+
+		if (state.readyDelayEvent) {
+			state.readyDelayEvent.remove(false);
+			state.readyDelayEvent = null;
 		}
 
 		if (state.groupMonsterSprite) {
