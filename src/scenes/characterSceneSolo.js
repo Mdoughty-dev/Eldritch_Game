@@ -91,7 +91,7 @@ export default class CharacterSceneSolo extends Phaser.Scene {
 
       prevButton.setColor(counter <= 0 ? disabledButton : buttonColor);
       nextButton.setColor(
-        counter >= characters.length - 1 ? disabledButton : buttonColor
+        counter >= characters.length - 1 ? disabledButton : buttonColor,
       );
     };
 
@@ -108,9 +108,10 @@ export default class CharacterSceneSolo extends Phaser.Scene {
     });
 
     submitButton.on("pointerdown", () => {
+      this.sound.stopAll();
       this.scene.start("SoloSocketBootstrapScene", {
-  selectedIndex: counter,
-});
+        selectedIndex: counter,
+      });
     });
   }
 }

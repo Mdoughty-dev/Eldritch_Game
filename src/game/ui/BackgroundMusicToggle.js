@@ -1,5 +1,8 @@
 export default function createMuteToggle(scene, music) {
-  const backgroundMusic = scene.sound.add(`${music}`, { volume: 0.1 });
+  const backgroundMusic = scene.sound.add(`${music}`, {
+    volume: 0.1,
+    loop: true,
+  });
   backgroundMusic.play();
 
   let musicIsPlaying = true;
