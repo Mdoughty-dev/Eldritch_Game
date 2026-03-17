@@ -3,6 +3,9 @@ import background from '../assets/background.png';
 import victory from '../assets/victory.png';
 import buttonBg from '../assets/buttonNormal.png';
 import activeButton from '../assets/buttonhighlight.png';
+import mute from '../assets/mute.png';
+import victoryMusic from '../assets/victory.mp3';
+import createMuteToggle from '../game/ui/BackgroundMusicToggle';
 
 export default class VictoryPage extends Phaser.Scene {
 	constructor() {
@@ -14,10 +17,13 @@ export default class VictoryPage extends Phaser.Scene {
 		this.load.image('victory', victory);
 		this.load.image('buttonBg', buttonBg);
 		this.load.image('activeButton', activeButton);
+		this.load.audio('victoryMusic', victoryMusic);
+		this.load.image('mute', mute);
 	}
 
 	create() {
 		this.createBackground();
+		createMuteToggle(this, 'victoryMusic');
 
 		const victoryImg = this.add
 			.image(this.scale.width / 2, this.scale.height / 2, 'victory')
@@ -67,6 +73,7 @@ export default class VictoryPage extends Phaser.Scene {
 		buttonBg.setInteractive({ useHandCursor: true });
 		buttonBg
 			.on('pointerdown', () => {
+				this.sound.stopAll();
 				this.scene.start('ComingSoon');
 			})
 			.on('pointerover', () => activeButton.setDepth(3))
