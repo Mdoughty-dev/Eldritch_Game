@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import backgroundImg from '../assets/background.png';
 import backgroundmp3 from '../assets/background.mp3';
 import buttonBg from '../assets/buttonNormal.png';
+import activeButton from '../assets/buttonhighlight.png';
 import mute from '../assets/mute.png';
 
 import { createEncounterUI } from '../game/ui/encounterUi';
@@ -23,6 +24,7 @@ export default class EncounterScene extends Phaser.Scene {
 		this.load.audio('backgroundmp3', backgroundmp3);
 		this.load.image('mute', mute);
 		this.load.image('buttonBg', buttonBg);
+		this.load.image('activeButton', activeButton);
 	}
 
 	create() {
