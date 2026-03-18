@@ -108,7 +108,6 @@ export default class CharacterSceneSolo extends Phaser.Scene {
 		});
 
 		submitButton.on('pointerdown', () => {
-			this.sound.stopAll();
 			this.scene.start('SoloSocketBootstrapScene', {
 				selectedIndex: counter,
 			});

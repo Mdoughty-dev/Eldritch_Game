@@ -1,11 +1,21 @@
 export default function createMuteToggle(scene, music) {
-	const backgroundMusic = scene.sound.add(`${music}`, {
-		volume: 0.1,
-		loop: true,
-	});
-	backgroundMusic.play();
+	const soundManager = scene.sound;
 
-	let musicIsPlaying = true;
+	let backgroundMusic = soundManager.get(music);
+	if (!backgroundMusic) {
+		backgroundMusic = soundManager.add(music, {
+			volume: 0.1,
+			loop: true,
+		});
+	}
+
+	if (!backgroundMusic.isPlaying) {
+		backgroundMusic.play();
+	}
+
+	if (soundManager.mute) {
+		backgroundMusic.pause();
+	}
 
 	const muteBackground = scene.add
 		.image(1250, 30, 'mute', {
@@ -18,12 +28,12 @@ export default function createMuteToggle(scene, music) {
 	muteBackground.setInteractive({ useHandCursor: true });
 
 	muteBackground.on('pointerdown', () => {
-		if (musicIsPlaying) {
-			musicIsPlaying = false;
+		if (backgroundMusic.isPlaying) {
 			backgroundMusic.pause();
+			soundManager.mute = true;
 		} else {
-			musicIsPlaying = true;
 			backgroundMusic.resume();
+			soundManager.mute = false;
 		}
 	});
 }

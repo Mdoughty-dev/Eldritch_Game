@@ -146,7 +146,6 @@ export default class ComingSoon extends Phaser.Scene {
 		buttonBg.setInteractive({ useHandCursor: true });
 		buttonBg
 			.on('pointerdown', () => {
-				this.sound.stopAll();
 				this.scene.start('HomePage');
 			})
 			.on('pointerover', () => activeButton.setDepth(3))

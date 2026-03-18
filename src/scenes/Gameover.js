@@ -75,7 +75,6 @@ export default class GameOver extends Phaser.Scene {
 		buttonBg.setInteractive({ useHandCursor: true });
 		buttonBg
 			.on('pointerdown', () => {
-				this.sound.stopAll();
 				this.scene.start('ComingSoon');
 			})
 			.on('pointerover', () => activeButton.setDepth(3))
