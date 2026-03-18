@@ -51,10 +51,10 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
   function start() {
     if (!state.roundStartedPayload) {
-      console.error("Missing roundStartedPayload for group mode");
+      console.error('Missing roundStartedPayload for group mode');
       ui.setHud({});
       ui.setQuestion({});
-      ui.setTimer("");
+      ui.setTimer('');
       return;
     }
 
@@ -79,7 +79,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
   }
 
   function handleAnswer(index) {
-    const answerMap = ["a", "b", "c", "d"];
+    const answerMap = ['a', 'b', 'c', 'd'];
     const answer = answerMap[index];
 
     submitAnswer({
@@ -88,13 +88,13 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     });
 
     ui.lockAnswers();
-    console.log("submitted group answer:", answer);
+    console.log('submitted group answer:', answer);
   }
 
   function getDifficultyLabel(stageNumber) {
-    if (stageNumber === 1) return "Level 1 - Easy";
-    if (stageNumber === 2) return "Level 2 - Medium";
-    if (stageNumber === 3) return "Level 3 - Hard";
+    if (stageNumber === 1) return 'Level 1 - Easy';
+    if (stageNumber === 2) return 'Level 2 - Medium';
+    if (stageNumber === 3) return 'Level 3 - Hard';
     return `Level ${stageNumber}`;
   }
 
@@ -135,10 +135,10 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
       const text = scene.add
         .text(bubbleX, bubbleY, message, {
-          fontSize: "16px",
-          color: "#111111",
-          fontStyle: "bold",
-          align: "center",
+          fontSize: '16px',
+          color: '#111111',
+          fontStyle: 'bold',
+          align: 'center',
           wordWrap: { width: bubbleWidth - 16 },
         })
         .setOrigin(0.5)
@@ -177,8 +177,8 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
   function getStageIntroMessage(stageNumber) {
     if (stageNumber === 1) return "Damn it's a SewerBeast";
-    if (stageNumber === 2) return "That is one ugly Thing!";
-    if (stageNumber === 3) return "What the hell, is that";
+    if (stageNumber === 2) return 'That is one ugly Thing!';
+    if (stageNumber === 3) return 'What the hell, is that';
     return null;
   }
 
@@ -201,9 +201,9 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
     const overlayText = scene.add
       .text(scene.scale.width / 2, scene.scale.height / 2, text, {
-        fontSize: "28px",
-        color: "#d8d8ff",
-        fontStyle: "bold",
+        fontSize: '28px',
+        color: '#d8d8ff',
+        fontStyle: 'bold',
       })
       .setOrigin(0.5)
       .setScrollFactor(0)
@@ -235,10 +235,12 @@ export function createGroupEncounterController(scene, ui, sceneData) {
   }
 
   function applyRoundStartedPayload(payload) {
+    console.log('applyRoundStartedPayload called', payload);
+
     const { monster, question, gameState } = payload;
 
     if (!monster || !question || !gameState) {
-      console.error("Invalid roundStartedPayload:", payload);
+      console.error('Invalid roundStartedPayload:', payload);
       return;
     }
 
@@ -253,7 +255,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     state.currentMonsterHp = monster.hp;
 
     if (!scene.textures.exists(monster.image_name)) {
-      console.warn("Missing monster texture:", monster.image_name);
+      console.warn('Missing monster texture:', monster.image_name);
     }
 
     if (!state.groupMonsterSprite) {
@@ -345,7 +347,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     }
 
     if (!scene.textures.exists(nextMonster.image_name)) {
-      console.warn("Missing next monster texture:", nextMonster.image_name);
+      console.warn('Missing next monster texture:', nextMonster.image_name);
     }
 
     if (!state.groupMonsterSprite) {
@@ -380,10 +382,26 @@ export function createGroupEncounterController(scene, ui, sceneData) {
   }
 
   function maybeFinishRoundFlow() {
-    if (!state.readyDelayDone) return;
-    if (state.pendingFxCount > 0) return;
+    console.log('maybeFinishRoundFlow called', {
+      readyDelayDone: state.readyDelayDone,
+      pendingFxCount: state.pendingFxCount,
+      pendingStageTransition: state.pendingStageTransition,
+      pendingRoundStartedPayload: state.pendingRoundStartedPayload,
+      isPlayingHitFx: state.isPlayingHitFx,
+    });
+
+    if (!state.readyDelayDone) {
+      console.log('blocked: readyDelayDone is false');
+      return;
+    }
+
+    if (state.pendingFxCount > 0) {
+      console.log('blocked: pendingFxCount > 0');
+      return;
+    }
 
     if (state.pendingStageTransition) {
+      console.log('running pending stage transition');
       runPendingStageTransitionIfNeeded();
       return;
     }
@@ -391,27 +409,53 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     state.isPlayingHitFx = false;
 
     if (state.pendingRoundStartedPayload) {
+      console.log('applying pending round payload');
       const nextPayload = state.pendingRoundStartedPayload;
       state.pendingRoundStartedPayload = null;
       applyRoundStartedPayload(nextPayload);
       return;
     }
 
-    console.log("sending clientReady");
+    console.log('sending clientReady');
     clientReady();
   }
 
+  function createSafeFxFinisher(onFinish, fallbackMs = 1400) {
+    let finished = false;
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      onFinish();
+    };
+
+    const timeout = scene.time.delayedCall(fallbackMs, () => {
+      console.warn('FX fallback finish triggered');
+      finish();
+    });
+
+    return () => {
+      if (timeout) {
+        timeout.remove(false);
+      }
+      finish();
+    };
+  }
+
   function onRoundResultHandler(payload) {
-    const correctIndex = ["a", "b", "c", "d"].indexOf(payload.correctOption);
+    console.log('ROUND RESULT HIT');
+    console.log(payload);
+
+    const correctIndex = ['a', 'b', 'c', 'd'].indexOf(payload.correctOption);
 
     let chosenIndex = -1;
-    const myUserId = localStorage.getItem("eldritchUserId");
+    const myUserId = localStorage.getItem('eldritchUserId');
     const myResult = payload.playerResults?.find(
       (player) => player.userId === myUserId
     );
 
     if (myResult?.answer) {
-      chosenIndex = ["a", "b", "c", "d"].indexOf(myResult.answer);
+      chosenIndex = ['a', 'b', 'c', 'd'].indexOf(myResult.answer);
     }
 
     if (correctIndex !== -1) {
@@ -434,19 +478,19 @@ export function createGroupEncounterController(scene, ui, sceneData) {
       );
 
     const correctTeamMessages = [
-      "We can do this!",
-      "Nice work, keep going!",
-      "That is more like it!",
-      "We have got this!",
-      "Stay sharp, team!",
+      'We can do this!',
+      'Nice work, keep going!',
+      'That is more like it!',
+      'We have got this!',
+      'Stay sharp, team!',
     ];
 
     const wrongTeamMessages = [
-      "Come on, focus",
-      "We need to do better",
-      "Stay with it!",
-      "Do not lose focus",
-      "Shake it off, team",
+      'Come on, focus',
+      'We need to do better',
+      'Stay with it!',
+      'Do not lose focus',
+      'Shake it off, team',
     ];
 
     if (allCorrect) {
@@ -527,6 +571,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
     if (monsterTookDamage) {
       state.pendingFxCount += 1;
+      console.log('monster FX started, pendingFxCount:', state.pendingFxCount);
 
       stopMonsterIdleFx(
         scene,
@@ -534,66 +579,89 @@ export function createGroupEncounterController(scene, ui, sceneData) {
         state.monsterIdleTween
       );
 
-      playMonsterHitFx(scene, state.groupMonsterSprite, monsterDamage, () => {
+      const finishMonsterFx = createSafeFxFinisher(() => {
         state.monsterIdleTween = playMonsterIdleFx(
           scene,
           state.groupMonsterSprite
         );
-        state.pendingFxCount -= 1;
+        state.pendingFxCount = Math.max(0, state.pendingFxCount - 1);
+        console.log(
+          'monster FX finished, pendingFxCount:',
+          state.pendingFxCount
+        );
         maybeFinishRoundFlow();
       });
+
+      playMonsterHitFx(
+        scene,
+        state.groupMonsterSprite,
+        monsterDamage,
+        finishMonsterFx
+      );
     }
 
     if (playerTookDamage) {
       state.pendingFxCount += 1;
+      console.log('player FX started, pendingFxCount:', state.pendingFxCount);
 
       stopPlayerIdleFx(scene, state.playerSprites, state.playerIdleTweens);
+
+      const finishPlayerFx = createSafeFxFinisher(() => {
+        state.playerIdleTweens = playPlayerIdleFx(scene, state.playerSprites);
+        state.pendingFxCount = Math.max(0, state.pendingFxCount - 1);
+        console.log('player FX finished, pendingFxCount:', state.pendingFxCount);
+        maybeFinishRoundFlow();
+      });
 
       playerFx(
         scene,
         state.playerSprites,
         state.groupMonsterSprite,
         playerDamage,
-        () => {
-          state.playerIdleTweens = playPlayerIdleFx(scene, state.playerSprites);
-          state.pendingFxCount -= 1;
-          maybeFinishRoundFlow();
-        }
+        finishPlayerFx
       );
     }
 
     if (!monsterTookDamage && !playerTookDamage) {
+      console.log('no FX to wait for');
       maybeFinishRoundFlow();
     }
   }
 
   function onRoundStartedHandler(payload) {
+    console.log('ROUND_STARTED received', payload);
+    console.log('isPlayingHitFx:', state.isPlayingHitFx);
+
     if (state.isPlayingHitFx) {
+      console.log('storing pendingRoundStartedPayload');
       state.pendingRoundStartedPayload = payload;
       return;
     }
 
+    console.log('applying roundStarted immediately');
     applyRoundStartedPayload(payload);
   }
 
   function onGameEndedHandler(payload) {
-    localStorage.removeItem("eldritchRoomCode");
-    localStorage.removeItem("eldritchCharacter");
-    localStorage.removeItem("eldritchName");
-    let message = "Game Over";
+    localStorage.removeItem('eldritchRoomCode');
+    localStorage.removeItem('eldritchCharacter');
+    localStorage.removeItem('eldritchName');
+    let message = 'Game Over';
 
-    if (payload.result === "victory" && !payload.isNextStage) {
+    if (payload.result === 'victory' && !payload.isNextStage) {
       scene.sound.stopAll();
-      scene.scene.start("Victory");
-    } else if (payload.result === "defeat") {
+      scene.scene.start('Victory');
+      return;
+    } else if (payload.result === 'defeat') {
       scene.sound.stopAll();
-      scene.scene.start("GameOver");
-    } else if (payload.result === "abandoned") {
-      message = "Abandoned";
+      scene.scene.start('GameOver');
+      return;
+    } else if (payload.result === 'abandoned') {
+      message = 'Abandoned';
     }
 
     ui.showEndOverlay(message, () => {
-      scene.scene.start("HomePage");
+      scene.scene.start('HomePage');
     });
   }
 
