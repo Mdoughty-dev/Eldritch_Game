@@ -2,21 +2,21 @@ import battleController from '../battleController';
 import applyDamage from '../battleLogic';
 import { playerFx } from '../playerFx';
 import {
-	submitAnswer,
-	clientReady,
-	onRoundResult,
-	offRoundResult,
-	onGameEnded,
-	offGameEnded,
-	onRoundStarted,
-	offRoundStarted,
+  submitAnswer,
+  clientReady,
+  onRoundResult,
+  offRoundResult,
+  onGameEnded,
+  offGameEnded,
+  onRoundStarted,
+  offRoundStarted,
 } from '../net/groupApi';
 
 import { createPlayerSprites } from '../ui/characterLoadingUI';
 import {
-	playMonsterHitFx,
-	playMonsterIdleFx,
-	stopMonsterIdleFx,
+  playMonsterHitFx,
+  playMonsterIdleFx,
+  stopMonsterIdleFx,
 } from '../monsterfx';
 import { playPlayerIdleFx, stopPlayerIdleFx } from '../playerFx';
 
@@ -45,6 +45,8 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     playerIdleTweens: [],
     pendingStageTransition: null,
     levelOverlay: null,
+    speechBubbles: [],
+    pendingIntroMessage: null,
   };
 
   function start() {
@@ -71,6 +73,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     );
 
     showLevelOverlay(firstStageNumber, () => {
+      state.pendingIntroMessage = getStageIntroMessage(firstStageNumber);
       applyRoundStartedPayload(state.roundStartedPayload);
     });
   }
@@ -103,6 +106,80 @@ export function createGroupEncounterController(scene, ui, sceneData) {
       payload?.gameState?.level ??
       1
     );
+  }
+
+  function clearSpeechBubbles() {
+    state.speechBubbles.forEach((bubble) => {
+      bubble.bg?.destroy();
+      bubble.text?.destroy();
+    });
+    state.speechBubbles = [];
+  }
+
+  function showTeamSpeech(message) {
+    clearSpeechBubbles();
+
+    state.playerSprites.forEach((sprite) => {
+      if (!sprite || !sprite.active) return;
+
+      const bubbleWidth = 150;
+      const bubbleHeight = 42;
+      const bubbleX = sprite.x + 100;
+      const bubbleY = sprite.y - 150;
+
+      const bg = scene.add
+        .rectangle(bubbleX, bubbleY, bubbleWidth, bubbleHeight, 0xffffff, 0.95)
+        .setStrokeStyle(2, 0x222222, 1)
+        .setDepth(1200)
+        .setAlpha(0);
+
+      const text = scene.add
+        .text(bubbleX, bubbleY, message, {
+          fontSize: "16px",
+          color: "#111111",
+          fontStyle: "bold",
+          align: "center",
+          wordWrap: { width: bubbleWidth - 16 },
+        })
+        .setOrigin(0.5)
+        .setDepth(1201)
+        .setAlpha(0);
+
+      state.speechBubbles.push({ bg, text });
+
+      scene.tweens.add({
+        targets: [bg, text],
+        alpha: 1,
+        duration: 150,
+        onComplete: () => {
+          scene.time.delayedCall(1200, () => {
+            scene.tweens.add({
+              targets: [bg, text],
+              alpha: 0,
+              duration: 200,
+              onComplete: () => {
+                bg.destroy();
+                text.destroy();
+                state.speechBubbles = state.speechBubbles.filter(
+                  (bubble) => bubble.bg !== bg
+                );
+              },
+            });
+          });
+        },
+      });
+    });
+  }
+
+  function getRandomMessage(messages) {
+    return messages[Math.floor(Math.random() * messages.length)];
+  }
+
+  function getStageIntroMessage(stageNumber) {
+    if (stageNumber === 1) return "Damn it's a SewerBeast";
+    if (stageNumber === 2) return "That is one ugly Thing!";
+    if (stageNumber === 3) return "What the hell, is that";
+    return null;
   }
 
   function showLevelOverlay(stageNumber, onComplete) {
@@ -165,6 +242,8 @@ export function createGroupEncounterController(scene, ui, sceneData) {
       return;
     }
 
+    clearSpeechBubbles();
+
     state.currentStageNumber = getStageNumberFromPayload(payload);
     state.currentQuestionId = question.id;
     state.roundDeadline = gameState.roundDeadline;
@@ -217,6 +296,14 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     });
 
     startRoundCountdown();
+
+    if (state.pendingIntroMessage) {
+      const message = state.pendingIntroMessage;
+      state.pendingIntroMessage = null;
+      scene.time.delayedCall(100, () => {
+        showTeamSpeech(message);
+      });
+    }
   }
 
   function startRoundCountdown() {
@@ -285,7 +372,9 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     state.pendingStageTransition = null;
 
     showLevelOverlay(stageNumber, () => {
+      state.currentStageNumber = stageNumber;
       swapMonster(nextMonster);
+      state.pendingIntroMessage = getStageIntroMessage(stageNumber);
       maybeFinishRoundFlow();
     });
   }
@@ -327,6 +416,43 @@ export function createGroupEncounterController(scene, ui, sceneData) {
 
     if (correctIndex !== -1) {
       ui.showAnswerFeedback(correctIndex, chosenIndex);
+    }
+
+    const everyoneAnswered =
+      Array.isArray(payload.playerResults) && payload.playerResults.length > 0;
+
+    const allCorrect =
+      everyoneAnswered &&
+      payload.playerResults.every(
+        (player) => player.answer === payload.correctOption
+      );
+
+    const allWrong =
+      everyoneAnswered &&
+      payload.playerResults.every(
+        (player) => player.answer && player.answer !== payload.correctOption
+      );
+
+    const correctTeamMessages = [
+      "We can do this!",
+      "Nice work, keep going!",
+      "That is more like it!",
+      "We have got this!",
+      "Stay sharp, team!",
+    ];
+
+    const wrongTeamMessages = [
+      "Come on, focus",
+      "We need to do better",
+      "Stay with it!",
+      "Do not lose focus",
+      "Shake it off, team",
+    ];
+
+    if (allCorrect) {
+      showTeamSpeech(getRandomMessage(correctTeamMessages));
+    } else if (allWrong) {
+      showTeamSpeech(getRandomMessage(wrongTeamMessages));
     }
 
     const playerDamage = state.teamHp - payload.teamHpAfter;
@@ -497,6 +623,8 @@ export function createGroupEncounterController(scene, ui, sceneData) {
       state.levelOverlay.overlayText.destroy();
       state.levelOverlay = null;
     }
+
+    clearSpeechBubbles();
 
     stopMonsterIdleFx(scene, state.groupMonsterSprite, state.monsterIdleTween);
     stopPlayerIdleFx(scene, state.playerSprites, state.playerIdleTweens);
