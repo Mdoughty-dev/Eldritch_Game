@@ -5,7 +5,7 @@ export function playerFx(
   playerSprites,
   monsterSprite,
   playerDamage,
-  onComplete
+  onComplete,
 ) {
   scene.time.addEvent({
     delay: 10,
@@ -16,6 +16,7 @@ export function playerFx(
   });
 
   scene.cameras.main.shake(120, 0.01);
+  scene.sound.play("hitFx", { volume: 0.1 });
 
   const startX = playerSprites.x;
   const startY = playerSprites.y;
