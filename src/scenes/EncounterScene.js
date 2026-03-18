@@ -1,76 +1,78 @@
-import Phaser from 'phaser';
-import backgroundImg from '../assets/background.png';
-import battleMusic from '../assets/battle.mp3';
-import buttonBg from '../assets/buttonNormal.png';
-import activeButton from '../assets/buttonhighlight.png';
-import mute from '../assets/mute.png';
+import Phaser from "phaser";
+import backgroundImg from "../assets/background.png";
+import battleMusic from "../assets/battle.mp3";
+import buttonBg from "../assets/buttonNormal.png";
+import activeButton from "../assets/buttonhighlight.png";
+import mute from "../assets/mute.png";
+import hitFx from "../assets/sewer.mp3";
 
-import { createEncounterUI } from '../game/ui/encounterUi';
-import createMuteToggle from '../game/ui/BackgroundMusicToggle';
-import { createGroupEncounterController } from '../game/controllers/groupEncounterController';
+import { createEncounterUI } from "../game/ui/encounterUi";
+import createMuteToggle from "../game/ui/BackgroundMusicToggle";
+import { createGroupEncounterController } from "../game/controllers/groupEncounterController";
 
 export default class EncounterScene extends Phaser.Scene {
-	constructor() {
-		super('EncounterScene');
-	}
+  constructor() {
+    super("EncounterScene");
+  }
 
-	init(data) {
-		this.sceneData = data ?? {};
-		this.mode = this.sceneData.mode ?? 'solo';
-	}
+  init(data) {
+    this.sceneData = data ?? {};
+    this.mode = this.sceneData.mode ?? "solo";
+  }
 
-	preload() {
-		this.load.image('bg', backgroundImg);
-		this.load.audio('battleMusic', battleMusic);
-		this.load.image('mute', mute);
-		this.load.image('buttonBg', buttonBg);
-		this.load.image('activeButton', activeButton);
-	}
+  preload() {
+    this.load.image("bg", backgroundImg);
+    this.load.audio("battleMusic", battleMusic);
+    this.load.image("mute", mute);
+    this.load.image("buttonBg", buttonBg);
+    this.load.image("activeButton", activeButton);
+    this.load.audio("hitFx", hitFx);
+  }
 
-	create() {
-		this.createBackground();
-		createMuteToggle(this, 'battleMusic');
+  create() {
+    this.createBackground();
+    createMuteToggle(this, "battleMusic");
 
-		this.ui = createEncounterUI(this, {
-			width: this.scale.width,
-			height: this.scale.height,
-			onAnswer: (i) => {
-				this.controller?.handleAnswer(i);
-			},
-		});
+    this.ui = createEncounterUI(this, {
+      width: this.scale.width,
+      height: this.scale.height,
+      onAnswer: (i) => {
+        this.controller?.handleAnswer(i);
+      },
+    });
 
-		if (this.mode === 'group') {
-			this.controller = createGroupEncounterController(
-				this,
-				this.ui,
-				this.sceneData,
-			);
-		} else {
-			this.controller = createSoloEncounterController(
-				this,
-				this.ui,
-				this.sceneData,
-			);
-		}
+    if (this.mode === "group") {
+      this.controller = createGroupEncounterController(
+        this,
+        this.ui,
+        this.sceneData,
+      );
+    } else {
+      this.controller = createSoloEncounterController(
+        this,
+        this.ui,
+        this.sceneData,
+      );
+    }
 
-		this.controller.start();
-		this.events.once('shutdown', () => {
-			this.shutdown();
-		});
-	}
+    this.controller.start();
+    this.events.once("shutdown", () => {
+      this.shutdown();
+    });
+  }
 
-	createBackground() {
-		const bg = this.add.image(0, 0, 'bg').setOrigin(0);
-		const scaleX = this.scale.width / bg.width;
-		const scaleY = this.scale.height / bg.height;
-		bg.setScale(Math.max(scaleX, scaleY));
-	}
+  createBackground() {
+    const bg = this.add.image(0, 0, "bg").setOrigin(0);
+    const scaleX = this.scale.width / bg.width;
+    const scaleY = this.scale.height / bg.height;
+    bg.setScale(Math.max(scaleX, scaleY));
+  }
 
-	shutdown() {
-		this.controller?.shutdown?.();
-	}
+  shutdown() {
+    this.controller?.shutdown?.();
+  }
 
-	destroy() {
-		this.shutdown();
-	}
+  destroy() {
+    this.shutdown();
+  }
 }
