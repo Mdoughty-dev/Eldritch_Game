@@ -1,6 +1,6 @@
-import battleController from '../battleController';
-import applyDamage from '../battleLogic';
-import { playerFx } from '../playerFx';
+import battleController from "../battleController";
+import applyDamage from "../battleLogic";
+import { playerFx } from "../playerFx";
 import {
   submitAnswer,
   clientReady,
@@ -18,10 +18,7 @@ import {
   playMonsterIdleFx,
   stopMonsterIdleFx,
 } from "../monsterfx";
-import {
-  playPlayerIdleFx,
-  stopPlayerIdleFx,
-} from "../playerFx";
+import { playPlayerIdleFx, stopPlayerIdleFx } from "../playerFx";
 
 export function createGroupEncounterController(scene, ui, sceneData) {
   const state = {
@@ -64,7 +61,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     state.battle = battleController(
       scene,
       ui.playerHealthBar,
-      ui.monsterHealthBar,
+      ui.monsterHealthBar
     );
   }
 
@@ -222,7 +219,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     let chosenIndex = -1;
     const myUserId = localStorage.getItem("eldritchUserId");
     const myResult = payload.playerResults?.find(
-      (player) => player.userId === myUserId,
+      (player) => player.userId === myUserId
     );
 
     if (myResult?.answer) {
@@ -241,7 +238,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
         playerDamage,
         true,
         state.teamHp,
-        state.teamHpMax,
+        state.teamHpMax
       );
     }
     if (state.currentMonsterHp > payload.monsterHpAfter) {
@@ -249,7 +246,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
         monsterDamage,
         false,
         state.currentMonsterHp,
-        state.monsterMaxHp,
+        state.monsterMaxHp
       );
     }
 
@@ -295,10 +292,17 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     if (monsterTookDamage) {
       state.pendingFxCount += 1;
 
-      stopMonsterIdleFx(scene, state.groupMonsterSprite, state.monsterIdleTween);
+      stopMonsterIdleFx(
+        scene,
+        state.groupMonsterSprite,
+        state.monsterIdleTween
+      );
 
       playMonsterHitFx(scene, state.groupMonsterSprite, monsterDamage, () => {
-        state.monsterIdleTween = playMonsterIdleFx(scene, state.groupMonsterSprite);
+        state.monsterIdleTween = playMonsterIdleFx(
+          scene,
+          state.groupMonsterSprite
+        );
         state.pendingFxCount -= 1;
         maybeFinishRoundFlow();
       });
@@ -318,7 +322,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
           state.playerIdleTweens = playPlayerIdleFx(scene, state.playerSprites);
           state.pendingFxCount -= 1;
           maybeFinishRoundFlow();
-        },
+        }
       );
     }
 
@@ -337,6 +341,9 @@ export function createGroupEncounterController(scene, ui, sceneData) {
   }
 
   function onGameEndedHandler(payload) {
+    localStorage.removeItem("eldritchRoomCode");
+    localStorage.removeItem("eldritchCharacter");
+    localStorage.removeItem("eldritchName");
     let message = "Game Over";
 
     if (payload.result === "victory" && !payload.isNextStage) {
