@@ -23,6 +23,7 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
 
   init(data) {
     this.selectedIndex = data?.selectedIndex ?? 0;
+    this.playerName = data?.playerName ?? "";
     this.roomCode = null;
     this.hasStartedGame = false;
     this.hasResolvedLobbyCheck = false;
@@ -148,11 +149,12 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
       localStorage.setItem("eldritchUserId", userId);
     }
 
-    let playerName = localStorage.getItem("eldritchPlayerName");
+    let playerName = this.playerName || localStorage.getItem("eldritchPlayerName");
     if (!playerName) {
       playerName = "Solo Player";
-      localStorage.setItem("eldritchPlayerName", playerName);
     }
+
+    localStorage.setItem("eldritchPlayerName", playerName);
 
     requestLobby();
 
@@ -175,7 +177,7 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
       localStorage.setItem("eldritchUserId", userId);
     }
 
-    let playerName = localStorage.getItem("eldritchPlayerName");
+    let playerName = this.playerName || localStorage.getItem("eldritchPlayerName");
     if (!playerName) {
       playerName = "Solo Player";
       localStorage.setItem("eldritchPlayerName", playerName);
