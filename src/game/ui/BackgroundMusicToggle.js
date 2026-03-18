@@ -17,6 +17,10 @@ export default function createMuteToggle(scene, music) {
 		backgroundMusic.pause();
 	}
 
+	scene.events.once('shutdown', () => {
+		backgroundMusic.stop();
+	});
+
 	const muteBackground = scene.add
 		.image(1250, 30, 'mute', {
 			width: '50px',
