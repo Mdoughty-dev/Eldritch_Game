@@ -1,5 +1,3 @@
-import { useCallback } from "react";
-
 export function playerFx(
   scene,
   playerSprites,
@@ -16,12 +14,9 @@ export function playerFx(
   });
 
   scene.cameras.main.shake(120, 0.01);
-  scene.sound.play("hitFx", { volume: 0.1 });
 
-  const startX = playerSprites.x;
-  const startY = playerSprites.y;
-  const originalScaleX = playerSprites.scaleX;
-  const originalScaleY = playerSprites.scaleY;
+  playerSprites.x;
+  playerSprites.y;
 
   scene.tweens.killTweensOf(playerSprites);
   scene.tweens.killTweensOf(monsterSprite);
@@ -33,9 +28,11 @@ export function playerFx(
     yoyo: true,
     ease: "Linear",
   });
+
   const damagePopup = scene.add.text(250, 200, `${playerDamage}`, {
     fontSize: "32px",
   });
+
   const xDirection = Math.random() * (250, -150) + 300;
 
   scene.tweens.add({

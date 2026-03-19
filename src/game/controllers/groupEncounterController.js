@@ -1,5 +1,4 @@
 import battleController from '../battleController';
-import applyDamage from '../battleLogic';
 import { playerFx } from '../playerFx';
 import {
   submitAnswer,
@@ -623,7 +622,7 @@ export function createGroupEncounterController(scene, ui, sceneData) {
         state.playerSprites,
         state.groupMonsterSprite,
         playerDamage,
-        finishPlayerFx
+        finishPlayerFx,
       );
     }
 

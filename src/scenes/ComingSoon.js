@@ -98,7 +98,7 @@ export default class ComingSoon extends Phaser.Scene {
 			.text(
 				this.scale.width / 2,
 				450,
-				"Create your own quiz: Challage your allies' feeble knowledge!",
+				"Create your own quiz: Challange your allies' feeble knowledge!",
 				{
 					fontSize: '32px',
 					fontFamily: 'Blackletter',
