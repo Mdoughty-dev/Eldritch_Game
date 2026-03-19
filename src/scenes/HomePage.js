@@ -87,7 +87,7 @@ export default class HomePage extends Phaser.Scene {
       .setDepth(0)
       .setScale(0.225, 0.245);
 
-    const soloButton = this.add
+    this.add
       .text(this.scale.width / 2, 400, "Adventure Alone", {
         fontSize: "32px",
         color: "#FFFFFF",
@@ -124,7 +124,7 @@ export default class HomePage extends Phaser.Scene {
       .setDepth(0)
       .setScale(0.225, 0.245);
 
-    const teamButton = this.add
+    this.add
       .text(this.scale.width / 2, 500, "Adventure Together", {
         fontSize: "32px",
         color: "#FFFFFF",
@@ -160,7 +160,7 @@ export default class HomePage extends Phaser.Scene {
       .setDepth(0)
       .setScale(0.225, 0.245);
 
-    const leaderboardButton = this.add
+    this.add
       .text(this.scale.width / 2, 600, "Leaderboard", {
         fontSize: "32px",
         color: "#FFFFFF",
