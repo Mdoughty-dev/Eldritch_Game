@@ -46,6 +46,7 @@ export default class LeaderboardScene extends Phaser.Scene {
 
     this.createNextButton();
     this.createPreviousButton();
+    this.createReturnButton();
   }
 
   renderLeaderboard(leaderboardData) {
@@ -82,7 +83,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       .image((this.scale.width * 3) / 4, 600, "buttonBg")
       .setOrigin(0.5);
     buttonBgNext
-      .setScale(0.5)
+      .setScale(0.25)
       .setDepth(1)
       .on("pointerout", () => {
         buttonNextActive.setDepth(0);
@@ -92,7 +93,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       .image((this.scale.width * 3) / 4, 600, "buttonHighlight")
       .setOrigin(0.5)
       .setDepth(0)
-      .setScale(0.225, 0.245);
+      .setScale(0.1125, 0.1225);
 
     const nextButton = this.add
       .text((this.scale.width * 3) / 4, 600, "Next", {
@@ -107,7 +108,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       buttonBgNext.setInteractive({ useHandCursor: false });
     } else {
       buttonBgNext
-        .setScale(0.5)
+        .setScale(0.25)
         .setDepth(1)
         .on("pointerover", () => {
           buttonNextActive.setDepth(2);
@@ -128,7 +129,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       .image(this.scale.width / 4, 600, "buttonBg")
       .setOrigin(0.5);
     buttonBgPrevious
-      .setScale(0.5)
+      .setScale(0.25)
       .setDepth(1)
       .on("pointerout", () => {
         buttonPreviousActive.setDepth(0);
@@ -138,7 +139,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       .image(this.scale.width / 4, 600, "buttonHighlight")
       .setOrigin(0.5)
       .setDepth(0)
-      .setScale(0.225, 0.245);
+      .setScale(0.1125, 0.1225);
 
     const previousButton = this.add
       .text(this.scale.width / 4, 600, "Previous", {
@@ -152,7 +153,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       buttonBgPrevious.setInteractive({ useHandCursor: false });
     } else {
       buttonBgPrevious
-        .setScale(0.5)
+        .setScale(0.25)
         .setDepth(1)
         .on("pointerover", () => {
           buttonPreviousActive.setDepth(2);
@@ -160,16 +161,48 @@ export default class LeaderboardScene extends Phaser.Scene {
         .on("pointerout", () => {
           buttonPreviousActive.setDepth(0);
         });
-      //   const buttonPreviousActive = this.add
-      //     .image(this.scale.width / 2, 700, "buttonHighlight")
-      //     .setOrigin(0.5)
-      //     .setDepth(0)
-      //     .setScale(0.225, 0.245);
       buttonBgPrevious.setInteractive({ useHandCursor: true });
       buttonBgPrevious.on("pointerdown", () => {
         console.log("Previous button is pressed");
         this.scene.restart({ offsetValue: this.offsetValue - 10 });
       });
     }
+  }
+
+  createReturnButton() {
+    const buttonBgReturn = this.add
+      .image(this.scale.width / 2, 600, "buttonBg")
+      .setOrigin(0.5);
+    buttonBgReturn
+      .setScale(0.25)
+      .setDepth(1)
+      .on("pointerover", () => {
+        buttonReturnActive.setDepth(2);
+      })
+      .on("pointerout", () => {
+        buttonReturnActive.setDepth(0);
+      });
+
+    const buttonReturnActive = this.add
+      .image(this.scale.width / 2, 600, "buttonHighlight")
+      .setOrigin(0.5)
+      .setDepth(0)
+      .setScale(0.1125, 0.1225);
+
+    const returnButton = this.add
+      .text(this.scale.width / 2, 600, "Home", {
+        fontSize: "32px",
+        color: "#FFFFFF",
+        fontFamily: "Blackletter",
+      })
+      .setOrigin(0.5)
+      .setDepth(2);
+
+    buttonBgReturn.setInteractive({ useHandCursor: true });
+    buttonBgReturn.on("pointerdown", () => {
+      console.log("leaderboard button is pressed");
+      this.sound.stopAll();
+      this.scene.start("HomePage");
+    });
   }
 }
