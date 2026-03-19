@@ -8,6 +8,7 @@ import GameOver from "../scenes/Gameover";
 import GroupLobbyScene from "../scenes/groupLobbyScene";
 import SoloSocketBootstrapScene from "../scenes/soloSocketBootstrapScene";
 import IntroScene from "../scenes/intro";
+import LeaderboardScene from "../scenes/LeaderboardScene";
 
 export function createPhaserGame(parentId) {
   return new Phaser.Game({
@@ -26,6 +27,7 @@ export function createPhaserGame(parentId) {
       Victory,
       GameOver,
       ComingSoon,
+      LeaderboardScene,
     ],
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     dom: {

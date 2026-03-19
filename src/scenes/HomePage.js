@@ -51,6 +51,20 @@ export default class HomePage extends Phaser.Scene {
     this.createBackground();
     this.createSoloButton();
     this.createTeamButton();
+    this.createLeaderboardButton();
+    createMuteToggle(this, "backgroundmp3");
+
+    this.add
+      .text(this.scale.width / 2, 100, "Forbidden Knowledge", {
+        fontSize: "64px",
+        fontFamily: "Blackletter",
+        color: "#FFFFFF",
+      })
+      .setOrigin(0.5);
+  }
+
+  createBackground() {
+    const bg = this.add.image(0, 0, "background").setOrigin(0);
     createMuteToggle(this, "backgroundmp3");
 
     //   this.add
@@ -102,6 +116,7 @@ export default class HomePage extends Phaser.Scene {
     buttonBg.on("pointerdown", () => {
       console.log("solo button is pressed");
       this.scene.start("characterSceneSolo");
+      this.sound.stopAll();
     });
   }
 
@@ -137,6 +152,44 @@ export default class HomePage extends Phaser.Scene {
     buttonBgTeam.setInteractive({ useHandCursor: true });
     buttonBgTeam.on("pointerdown", () => {
       console.log("group button is pressed");
+      this.sound.stopAll();
+      this.scene.start("GroupLobbyScene");
+    });
+  }
+  createLeaderboardButton() {
+    const buttonBgLeaderboard = this.add
+      .image(this.scale.width / 2, 600, "buttonBg")
+      .setOrigin(0.5);
+    buttonBgLeaderboard
+      .setScale(0.5)
+      .setDepth(1)
+      .on("pointerover", () => {
+        buttonLeaderboardActive.setDepth(2);
+      })
+      .on("pointerout", () => {
+        buttonLeaderboardActive.setDepth(0);
+      });
+
+    const buttonLeaderboardActive = this.add
+      .image(this.scale.width / 2, 600, "buttonHighlight")
+      .setOrigin(0.5)
+      .setDepth(0)
+      .setScale(0.225, 0.245);
+
+    const leaderboardButton = this.add
+      .text(this.scale.width / 2, 600, "Leaderboard", {
+        fontSize: "32px",
+        color: "#FFFFFF",
+        fontFamily: "Blackletter",
+      })
+      .setOrigin(0.5)
+      .setDepth(2);
+
+    buttonBgLeaderboard.setInteractive({ useHandCursor: true });
+    buttonBgLeaderboard.on("pointerdown", () => {
+      console.log("leaderboard button is pressed");
+      this.sound.stopAll();
+      this.scene.start("LeaderboardScene");
 
       this.scene.start("GroupLobbyScene");
     });

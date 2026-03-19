@@ -1,6 +1,6 @@
-import Phaser from 'phaser';
-import createMuteToggle from '../game/ui/BackgroundMusicToggle';
-import { characters } from '../game/data/characterData';
+import Phaser from "phaser";
+import createMuteToggle from "../game/ui/BackgroundMusicToggle";
+import { characters } from "../game/data/characterData";
 
 export default class CharacterSceneSolo extends Phaser.Scene {
 	constructor() {
