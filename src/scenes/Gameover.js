@@ -4,7 +4,7 @@ import activeButton from "../assets/buttonhighlight.png";
 import mute from "../assets/mute.png";
 import createMuteToggle from "../game/ui/BackgroundMusicToggle";
 import gameOverMusic from "../assets/gameOver.mp3";
-import gameOverBg from "../assets/gameover1.png";
+import gameOverBg from "../assets/game-over.png";
 
 export default class GameOver extends Phaser.Scene {
   constructor() {
