@@ -96,7 +96,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       .setDepth(0)
       .setScale(0.1125, 0.1225);
 
-    const nextButton = this.add
+    this.add
       .text((this.scale.width * 3) / 4, 690, "Next", {
         fontSize: "32px",
         color: "#FFFFFF",
@@ -142,7 +142,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       .setDepth(0)
       .setScale(0.1125, 0.1225);
 
-    const previousButton = this.add
+    this.add
       .text(this.scale.width / 4, 690, "Previous", {
         fontSize: "32px",
         color: "#FFFFFF",
@@ -190,7 +190,7 @@ export default class LeaderboardScene extends Phaser.Scene {
       .setDepth(0)
       .setScale(0.1125, 0.1225);
 
-    const returnButton = this.add
+    this.add
       .text(this.scale.width / 2, 690, "Home", {
         fontSize: "32px",
         color: "#FFFFFF",
