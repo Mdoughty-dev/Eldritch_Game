@@ -73,8 +73,6 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
       this.hasResolvedLobbyCheck = true;
       this.roomCode = payload.roomCode;
 
-      localStorage.setItem("eldritchRoomCode", payload.roomCode);
-
       const matchedIndex = characters.findIndex(
         (c) =>
           (c.character_id ?? c.id) ===
@@ -83,13 +81,7 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
 
       if (matchedIndex !== -1) {
         this.selectedIndex = matchedIndex;
-        const character = characters[this.selectedIndex];
-        localStorage.setItem(
-          "eldritchCharacter",
-          character.character_id ?? character.id
-        );
       }
-      localStorage.setItem("eldritchName", me.name);
 
       if (!this.isRecreatingRoom) {
         this.isRecreatingRoom = true;
@@ -104,9 +96,7 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
         return;
       }
 
-      this.statusText.setText(
-        `Room created: ${this.roomCode}. Starting game...`
-      );
+      this.statusText.setText(`Room created: ${this.roomCode}. Starting game...`);
 
       if (!this.hasStartedGame && payload.roomStatus === "lobby") {
         this.hasStartedGame = true;
@@ -159,8 +149,7 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
       localStorage.setItem("eldritchUserId", userId);
     }
 
-    let playerName =
-      this.playerName || localStorage.getItem("eldritchPlayerName");
+    let playerName = this.playerName || localStorage.getItem("eldritchPlayerName");
     if (!playerName) {
       playerName = "Solo Player";
     }
@@ -188,13 +177,11 @@ export default class SoloSocketBootstrapScene extends Phaser.Scene {
       localStorage.setItem("eldritchUserId", userId);
     }
 
-    let playerName =
-      this.playerName || localStorage.getItem("eldritchPlayerName");
+    let playerName = this.playerName || localStorage.getItem("eldritchPlayerName");
     if (!playerName) {
       playerName = "Solo Player";
       localStorage.setItem("eldritchPlayerName", playerName);
     }
-    localStorage.setItem("eldritchCharacter", characterId);
 
     joinRoom({
       name: playerName,
