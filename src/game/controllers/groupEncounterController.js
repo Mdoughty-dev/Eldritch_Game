@@ -116,58 +116,63 @@ export function createGroupEncounterController(scene, ui, sceneData) {
     state.speechBubbles = [];
   }
 
-  function showTeamSpeech(message) {
+    function showTeamSpeech(message) {
     clearSpeechBubbles();
 
-    state.playerSprites.forEach((sprite) => {
-      if (!sprite || !sprite.active) return;
+    const activeSprites = state.playerSprites.filter(
+      (sprite) => sprite && sprite.active
+    );
 
-      const bubbleWidth = 150;
-      const bubbleHeight = 42;
-      const bubbleX = sprite.x + 100;
-      const bubbleY = sprite.y - 150;
+    if (activeSprites.length === 0) return;
 
-      const bg = scene.add
-        .rectangle(bubbleX, bubbleY, bubbleWidth, bubbleHeight, 0xffffff, 0.95)
-        .setStrokeStyle(2, 0x222222, 1)
-        .setDepth(1200)
-        .setAlpha(0);
+    const randomSprite =
+      activeSprites[Math.floor(Math.random() * activeSprites.length)];
 
-      const text = scene.add
-        .text(bubbleX, bubbleY, message, {
-          fontSize: '16px',
-          color: '#111111',
-          fontStyle: 'bold',
-          align: 'center',
-          wordWrap: { width: bubbleWidth - 16 },
-        })
-        .setOrigin(0.5)
-        .setDepth(1201)
-        .setAlpha(0);
+    const bubbleWidth = 150;
+    const bubbleHeight = 42;
+    const bubbleX = randomSprite.x + 100;
+    const bubbleY = randomSprite.y - 150;
 
-      state.speechBubbles.push({ bg, text });
+    const bg = scene.add
+      .rectangle(bubbleX, bubbleY, bubbleWidth, bubbleHeight, 0xffffff, 0.95)
+      .setStrokeStyle(2, 0x222222, 1)
+      .setDepth(1200)
+      .setAlpha(0);
 
-      scene.tweens.add({
-        targets: [bg, text],
-        alpha: 1,
-        duration: 150,
-        onComplete: () => {
-          scene.time.delayedCall(1200, () => {
-            scene.tweens.add({
-              targets: [bg, text],
-              alpha: 0,
-              duration: 200,
-              onComplete: () => {
-                bg.destroy();
-                text.destroy();
-                state.speechBubbles = state.speechBubbles.filter(
-                  (bubble) => bubble.bg !== bg
-                );
-              },
-            });
+    const text = scene.add
+      .text(bubbleX, bubbleY, message, {
+        fontSize: '16px',
+        color: '#111111',
+        fontStyle: 'bold',
+        align: 'center',
+        wordWrap: { width: bubbleWidth - 16 },
+      })
+      .setOrigin(0.5)
+      .setDepth(1201)
+      .setAlpha(0);
+
+    state.speechBubbles.push({ bg, text });
+
+    scene.tweens.add({
+      targets: [bg, text],
+      alpha: 1,
+      duration: 150,
+      onComplete: () => {
+        scene.time.delayedCall(1200, () => {
+          scene.tweens.add({
+            targets: [bg, text],
+            alpha: 0,
+            duration: 200,
+            onComplete: () => {
+              bg.destroy();
+              text.destroy();
+              state.speechBubbles = state.speechBubbles.filter(
+                (bubble) => bubble.bg !== bg
+              );
+            },
           });
-        },
-      });
+        });
+      },
     });
   }
 
