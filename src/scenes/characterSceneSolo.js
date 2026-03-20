@@ -17,7 +17,7 @@ export default class CharacterSceneSolo extends Phaser.Scene {
   }
 
   create() {
-    this.playerName = localStorage.getItem("eldritchPlayerName") || "";
+    this.playerName = "";
 
     const bg = this.add.image(0, 0, "background").setOrigin(0);
     const scaleX = this.scale.width / bg.width;
@@ -40,15 +40,10 @@ export default class CharacterSceneSolo extends Phaser.Scene {
     title.setShadow(4, 4, "#000000", 8, true, true);
 
     this.nameText = this.add
-      .text(
-        this.scale.width / 2,
-        200,
-        this.playerName ? `Name: ${this.playerName}` : "Name: Not set",
-        {
-          fontSize: "28px",
-          color: "#ffffff",
-        },
-      )
+      .text(this.scale.width / 2, 200, "Name: Not set", {
+        fontSize: "28px",
+        color: "#ffffff",
+      })
       .setOrigin(0.5);
 
     const buttonColor = "#e9bef7";
@@ -105,7 +100,7 @@ export default class CharacterSceneSolo extends Phaser.Scene {
 
       prevButton.setColor(counter <= 0 ? disabledButton : buttonColor);
       nextButton.setColor(
-        counter >= characters.length - 1 ? disabledButton : buttonColor,
+        counter >= characters.length - 1 ? disabledButton : buttonColor
       );
     };
 
@@ -154,7 +149,7 @@ export default class CharacterSceneSolo extends Phaser.Scene {
       <input
         type="text"
         id="modal-input"
-        value="${this.escapeHtml(this.playerName)}"
+        value="${this.escapeHtml("")}"
         placeholder="Type here..."
         maxlength="16"
         autocapitalize="words"
@@ -232,7 +227,11 @@ export default class CharacterSceneSolo extends Phaser.Scene {
       const value = inputEl.value.trim();
       if (!value) return;
 
-      localStorage.setItem("eldritchPlayerName", value);
+      localStorage.removeItem("eldritchRoomCode");
+      localStorage.removeItem("eldritchCharacter");
+      localStorage.removeItem("eldritchName");
+      localStorage.removeItem("eldritchPlayerName");
+
       this.playerName = value;
       this.nameText.setText(`Name: ${value}`);
 
